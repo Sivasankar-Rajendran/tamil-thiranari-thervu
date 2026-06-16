@@ -1021,7 +1021,7 @@
       clearCurrent()    { localStorage.removeItem(this.KEY_CUR); },
       getAllAnswers()    { return JSON.parse(localStorage.getItem(this.KEY_ANS) || '{}'); },
       saveAllAnswers(a) { localStorage.setItem(this.KEY_ANS, JSON.stringify(a)); },
-      getTeacherPwd()   { return localStorage.getItem(this.KEY_T_PWD) || '1234'; },
+      getTeacherPwd()   { return localStorage.getItem(this.KEY_T_PWD) || '54321'; },
       setTeacherPwd(p)  { localStorage.setItem(this.KEY_T_PWD, p); },
       isTeacherIn()     { return localStorage.getItem(this.KEY_T_IN) === '1'; },
       setTeacherIn(v)   { v ? localStorage.setItem(this.KEY_T_IN,'1') : localStorage.removeItem(this.KEY_T_IN); },
