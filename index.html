@@ -1040,16 +1040,22 @@
     // ============================================================
     // ── Firebase init ───────────────────────────────────────────
     function formatDobInput(el) {
-      const pos = el.selectionStart;
-      const prev = el.value;
-      let digits = prev.replace(/\D/g, '').slice(0, 8);
-      let fmt = digits;
+      const raw = el.value;
+      const digits = raw.replace(/\D/g, '').slice(0, 8);
+      const isDeleting = raw.length < (el._dobPrevLen || 0);
+
+      let fmt;
       if (digits.length > 4) fmt = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
       else if (digits.length > 2) fmt = digits.slice(0,2) + '/' + digits.slice(2);
+      else fmt = digits;
+
+      // auto-append slash immediately after DD and MM when typing forward
+      if (!isDeleting && fmt.length === 2) fmt += '/';
+      if (!isDeleting && fmt.length === 5) fmt += '/';
+
       el.value = fmt;
-      // keep cursor from jumping to end on mid-edit
-      const added = fmt.length - prev.length;
-      el.setSelectionRange(pos + added, pos + added);
+      el._dobPrevLen = fmt.length;
+      el.setSelectionRange(fmt.length, fmt.length);
     }
 
     function isValidDob(digits) {
