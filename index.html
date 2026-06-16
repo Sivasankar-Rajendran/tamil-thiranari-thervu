@@ -33,7 +33,7 @@
     }
 
     .screen { display: none; }
-    .screen.active { display: block; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
 
     /* HERO */
     .hero {
@@ -77,9 +77,7 @@
     .hero-nav {
       display: flex;
       gap: 8px;
-      justify-content: flex-end;
-      padding: 10px 16px 0;
-      position: relative; z-index: 1;
+      position: absolute; top: 50%; right: 16px; transform: translateY(-50%); z-index: 10;
     }
     .hero-btn {
       background: rgba(255, 255, 255, 0.15);
@@ -87,12 +85,13 @@
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 20px;
       padding: 6px 14px;
-      font-size: 12px;
-      font-family: inherit; font-weight: 600;
+      font-size: 14px;
+      font-family: inherit; font-weight: 700;
       cursor: pointer;
       transition: background 0.2s;
     }
     .hero-btn:hover { background: rgba(255, 255, 255, 0.28); }
+    .hero-sm { padding: 22px 24px 18px; }
 
     /* CONTAINER */
     .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
@@ -454,7 +453,7 @@
     footer {
       text-align: center; padding: 20px;
       color: var(--muted); font-size: 12px;
-      border-top: 1px solid var(--border); margin-top: 32px;
+      border-top: 1px solid var(--border); margin-top: auto;
     }
 
     /* LANDING – role selection */
@@ -499,7 +498,7 @@
     }
     .td-student-header {
       display: flex; align-items: center; gap: 12px;
-      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      padding: 8px 16px; border-bottom: 1px solid var(--border);
       background: #faf6f0;
     }
     .td-ch-list { padding: 4px 0; }
@@ -549,10 +548,9 @@
        SCREEN: LANDING (role select)
        ============================ -->
   <div id="screen-landing" class="screen active">
-    <div class="hero">
+    <div class="hero hero-sm">
       <h1>10ஆம் வகுப்பு தமிழ்</h1>
       <p>திறன் தேர்வு மையம்</p>
-      <span class="badge">TN Textbooks 2025</span>
     </div>
     <div class="container" style="padding-top:36px;">
       <p class="section-title" style="text-align:center;border:none;">நீங்கள் யார்?</p>
@@ -565,7 +563,7 @@
         <div class="role-card role-card-teacher" onclick="App.goTeacherLogin()">
           <div class="role-icon">👩‍🏫</div>
           <div class="role-title">ஆசிரியர்</div>
-          <div class="role-sub">மாணவர்களை நிர்வகிக்க</div>
+          <div class="role-sub">மாணவர்களை நிர்வகிக்க இங்கே அழுத்தவும்</div>
         </div>
       </div>
     </div>
@@ -576,16 +574,15 @@
        SCREEN: STUDENT SELECTION
        ============================ -->
   <div id="screen-users" class="screen">
-    <div class="hero">
+    <div class="hero hero-sm">
       <div class="hero-nav">
-        <button class="hero-btn" onclick="App.showScreen('screen-landing')">← பின்செல்</button>
+        <button class="hero-btn" onclick="App.showScreen('screen-landing')">⬅ பின்செல்</button>
       </div>
       <h1>10ஆம் வகுப்பு தமிழ்</h1>
-      <p>திறன் தேர்வு மையம்</p>
-      <span class="badge">TN Textbooks 2025 · மாணவர் உள்நுழைவு</span>
+      <p>திறன் தேர்வு மையம் · மாணவர் உள்நுழைவு</p>
     </div>
     <div class="container">
-      <p class="section-title">மாணவரைத் தேர்வு செய்யுங்கள்</p>
+      <p class="section-title">மாணவர்களே! உங்கள் பெயரை தேர்வு செய்யவும்.</p>
       <div class="user-grid" id="userGrid"></div>
     </div>
     <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
@@ -595,12 +592,12 @@
        SCREEN 2: HOME / CHAPTERS
        ============================ -->
   <div id="screen-home" class="screen">
-    <div class="hero">
+    <div class="hero hero-sm">
       <div class="hero-nav">
-        <button class="hero-btn" onclick="App.switchUser()">👤 மாற்று</button>
+        <button class="hero-btn" onclick="App.switchUser()">🏃 வெளியேறு</button>
       </div>
       <h1>10ஆம் வகுப்பு தமிழ்</h1>
-      <p>TN Textbooks 2025 – திறன் தேர்வு மையம்</p>
+      <p>திறன் தேர்வு மையம்</p>
     </div>
     <div class="container">
       <div class="welcome-banner">
@@ -620,9 +617,12 @@
        SCREEN 3: QUIZ
        ============================ -->
   <div id="screen-quiz" class="screen">
-    <div class="back-bar">
-      <button class="back-btn" onclick="App.goHome()">← பின்செல்</button>
-      <span class="bar-title" id="quizChapterTitle">-</span>
+    <div class="hero hero-sm">
+      <div class="hero-nav">
+        <button class="hero-btn" onclick="App.goHome()">⬅ பின்செல்</button>
+      </div>
+      <h1 style="font-size:clamp(16px,3.5vw,26px);margin:0 auto;">10ஆம் வகுப்பு தமிழ்</h1>
+      <p id="quizChapterTitle">-</p>
     </div>
     <div class="scoreboard">
       <div class="score-item">
@@ -670,17 +670,16 @@
        SCREEN: TEACHER LOGIN
        ============================ -->
   <div id="screen-teacher-login" class="screen">
-    <div class="hero">
+    <div class="hero hero-sm">
       <div class="hero-nav">
-        <button class="hero-btn" onclick="App.showScreen('screen-landing')">← பின்செல்</button>
+        <button class="hero-btn" onclick="App.showScreen('screen-landing')">⬅ பின்செல்</button>
       </div>
       <h1>ஆசிரியர் உள்நுழைவு</h1>
-      <p>கடவுச்சொல் உள்ளிடவும்</p>
     </div>
     <div class="container" style="padding-top:36px;">
       <div class="login-box">
         <div style="text-align:center;font-size:52px;margin-bottom:14px;">👩‍🏫</div>
-        <p style="text-align:center;color:var(--muted);margin-bottom:18px;font-size:14px;">ஆசிரியர் கடவுச்சொல் உள்ளிடவும்</p>
+        <p style="text-align:center;color:var(--muted);margin-bottom:18px;font-size:14px;">உங்கள் கடவுச்சொல்லை உள்ளிடவும்</p>
         <input type="password" id="teacherPwd" placeholder="கடவுச்சொல்"
           onkeydown="if(event.key==='Enter') App.verifyTeacher()">
         <p id="teacherPwdErr" style="color:var(--wrong);font-size:12px;margin-bottom:12px;display:none;">
@@ -699,18 +698,17 @@
        SCREEN: TEACHER DASHBOARD
        ============================ -->
   <div id="screen-teacher-dashboard" class="screen">
-    <div class="hero">
+    <div class="hero hero-sm">
       <div class="hero-nav">
         <button class="hero-btn" onclick="App.showChangePwdModal()">🔑 கடவுச்சொல்</button>
-        <button class="hero-btn" onclick="App.teacherLogout()">வெளியேறு</button>
+        <button class="hero-btn" onclick="App.teacherLogout()">🏃 வெளியேறு</button>
       </div>
-      <h1>ஆசிரியர் கட்டுப்பாட்டு மையம்</h1>
-      <p>மாணவர்களின் தேர்வு நிர்வாகம்</p>
+      <h1 style="text-align:center;font-size:clamp(16px,3.5vw,26px);margin:0 auto;">ஆசிரியர் கட்டுப்பாட்டு மையம்</h1>
     </div>
     <div class="container">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <p class="section-title" style="margin-bottom:0;border:none;padding:0;">🏆 அனைத்து மாணவர்களின் மதிப்பெண்கள்</p>
-        <button class="btn btn-accent" onclick="App.showAddUserModal()">+ மாணவர் சேர்</button>
+        <button class="btn btn-accent" onclick="App.showAddUserModal()">+ புதிய மாணவரை சேர்க்க</button>
       </div>
       <div id="teacherStudentList"></div>
     </div>
@@ -722,8 +720,8 @@
        ============================ -->
   <div class="modal-overlay" id="addUserModal">
     <div class="modal">
-      <h3>புதிய மாணவர் சேர்க்க</h3>
-      <input type="text" id="newUserName" placeholder="மாணவரின் பெயர் உள்ளிடவும்" maxlength="30"
+      <h3>புதிய மாணவரை சேர்க்க</h3>
+      <input type="text" id="newUserName" placeholder="மாணவரின் பெயரை உள்ளிடவும்" maxlength="30"
         onkeydown="if(event.key==='Enter') App.addUser()">
       <div class="modal-btns">
         <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
@@ -734,7 +732,7 @@
 
   <div class="modal-overlay" id="changePwdModal">
     <div class="modal">
-      <h3>🔑 கடவுச்சொல் மாற்று</h3>
+      <h3>🔑 கடவுச்சொல்லை மாற்ற</h3>
       <input type="password" id="newPwd1" placeholder="புதிய கடவுச்சொல்" maxlength="20">
       <input type="password" id="newPwd2" placeholder="மீண்டும் உள்ளிடவும்" maxlength="20"
         onkeydown="if(event.key==='Enter') App.saveNewPwd()">
@@ -1114,7 +1112,7 @@
 
         if (users.length === 0) {
           list.innerHTML = `<div class="td-no-students">
-            மாணவர்கள் இல்லை.<br>மேலே உள்ள "+ மாணவர் சேர்" என்று அழுத்தவும்.
+            மாணவர்கள் இல்லை.<br>மேலே உள்ள "+ புதிய மாணவரை சேர்க்க" என்று அழுத்தவும்.
           </div>`;
           this.showScreen('screen-teacher-dashboard');
           return;
@@ -1144,7 +1142,7 @@
           card.innerHTML = `
             <div class="td-student-header" style="cursor:pointer;" onclick="App.toggleStudentCard('${cardId}', this)">
               <div style="flex:1;">
-                <div style="font-weight:700;font-size:19px;">${u.name}</div>
+                <div style="font-weight:700;font-size:15px;">${u.name}</div>
               </div>
               <span style="font-weight:700;font-size:15px;color:var(--accent);margin-right:12px;">${ts.correct}/${ts.total}</span>
               <span class="td-expand-icon">▼</span>
