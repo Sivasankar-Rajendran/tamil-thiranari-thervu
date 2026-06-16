@@ -595,8 +595,21 @@
       <p>திறன் தேர்வு மையம் · மாணவர் உள்நுழைவு</p>
     </div>
     <div class="container">
-      <p class="section-title">மாணவர்களே! உங்கள் பெயரை தேர்வு செய்யவும்.</p>
-      <div class="user-grid" id="userGrid"></div>
+      <div class="login-box">
+        <div style="text-align:center;font-size:52px;margin-bottom:14px;">👨‍🎓</div>
+        <p style="text-align:center;color:var(--muted);margin-bottom:18px;font-size:14px;">உங்கள் PIN மற்றும் பிறந்த தேதி உள்ளிடவும்</p>
+        <input type="password" id="studentPin" placeholder="4 இலக்க PIN" maxlength="4" inputmode="numeric"
+          onkeydown="if(event.key==='Enter') document.getElementById('studentDob').focus()">
+        <input type="text" id="studentDob" placeholder="பிறந்த தேதி (DDMMYYYY)" maxlength="8" inputmode="numeric"
+          onkeydown="if(event.key==='Enter') App.verifyStudentLogin()">
+        <p id="studentLoginErr" style="color:var(--wrong);font-size:12px;margin-bottom:12px;display:none;">
+          தவறான PIN அல்லது பிறந்த தேதி. மீண்டும் முயற்சிக்கவும்.
+        </p>
+        <div class="modal-btns">
+          <button class="btn btn-secondary" onclick="App.showScreen('screen-landing')">ரத்து</button>
+          <button class="btn btn-primary" onclick="App.verifyStudentLogin()">உள்நுழை →</button>
+        </div>
+      </div>
     </div>
     <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
   </div>
@@ -741,9 +754,10 @@
     <div class="modal">
       <h3>புதிய மாணவரை சேர்க்க</h3>
       <input type="text" id="newUserName" placeholder="மாணவரின் பெயரை உள்ளிடவும்" maxlength="30">
-      <input type="password" id="newUserPin" placeholder="4 இலக்க PIN அமைக்கவும்" maxlength="4"
-        inputmode="numeric" pattern="[0-9]*"
-        onkeydown="if(event.key==='Enter') App.addUser()">
+      <input type="password" id="newUserPin" placeholder="4 இலக்க PIN" maxlength="4"
+        inputmode="numeric" pattern="[0-9]*">
+      <input type="text" id="newUserDob" placeholder="பிறந்த தேதி (DDMMYYYY)" maxlength="8"
+        inputmode="numeric" onkeydown="if(event.key==='Enter') App.addUser()">
       <p id="addUserErr" style="color:var(--wrong);font-size:12px;margin-bottom:10px;display:none;"></p>
       <div class="modal-btns">
         <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
@@ -752,25 +766,6 @@
     </div>
   </div>
 
-  <!-- ============================
-       MODAL: PIN ENTRY (student login)
-       ============================ -->
-  <div class="modal-overlay" id="pinModal">
-    <div class="modal">
-      <h3>🔒 PIN உள்ளிடவும்</h3>
-      <p id="pinModalName" style="color:var(--muted);font-size:13px;margin-bottom:14px;"></p>
-      <input type="password" id="pinInput" placeholder="4 இலக்க PIN" maxlength="4"
-        inputmode="numeric" pattern="[0-9]*"
-        onkeydown="if(event.key==='Enter') App.verifyPin()">
-      <p id="pinErr" style="color:var(--wrong);font-size:12px;margin-bottom:10px;display:none;">
-        தவறான PIN. மீண்டும் முயற்சிக்கவும்.
-      </p>
-      <div class="modal-btns">
-        <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
-        <button class="btn btn-primary" onclick="App.verifyPin()">உள்நுழை →</button>
-      </div>
-    </div>
-  </div>
 
   <div class="modal-overlay" id="changePwdModal">
     <div class="modal">
@@ -1065,21 +1060,33 @@
         const snap = await withTimeout(db.collection('users').orderBy('createdAt').get());
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
       },
-      async addUser(name, pin) {
+      async addUser(name, pin, dob) {
         const ref = await withTimeout(db.collection('users').add({
-          name, pin, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          name, pin, dob, createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }));
         return ref.id;
+      },
+      async checkPinExists(pin) {
+        const snap = await withTimeout(db.collection('users').where('pin', '==', pin).get());
+        return !snap.empty;
+      },
+      async verifyPinDob(pin, dob) {
+        const snap = await withTimeout(
+          db.collection('users').where('pin', '==', pin).where('dob', '==', dob).get()
+        );
+        if (snap.empty) return null;
+        const doc = snap.docs[0];
+        return { id: doc.id, ...doc.data() };
+      },
+      async getUserById(uid) {
+        const snap = await withTimeout(db.collection('users').doc(uid).get());
+        return snap.exists ? { id: snap.id, ...snap.data() } : null;
       },
       async deleteUser(uid) {
         await withTimeout(Promise.all([
           db.collection('users').doc(uid).delete(),
           db.collection('answers').doc(uid).delete()
         ]));
-      },
-      async verifyPin(uid, pin) {
-        const snap = await withTimeout(db.collection('users').doc(uid).get());
-        return snap.exists && snap.data().pin === pin;
       },
 
       // ── Answers ──────────────────────────────────────────────
@@ -1154,7 +1161,6 @@
       currentRole:    null,
       currentChapter: null,
       currentUA:      {},
-      pendingPinUid:  null,
       quizStats: { total: 0, answered: 0, correct: 0, wrong: 0 },
 
       // ─── Loading ──────────────────────────────────────────────
@@ -1170,8 +1176,6 @@
       },
 
       // ─── Landing ─────────────────────────────────────────────
-      goStudentLogin() { this.renderUserScreen(); },
-
       goTeacherLogin() {
         document.getElementById('teacherPwd').value = '';
         document.getElementById('teacherPwdErr').style.display = 'none';
@@ -1263,9 +1267,8 @@
       },
 
       async teacherResetStudent(uid, chapterId) {
-        const users = await Store.getUsers();
-        const user  = users.find(u => u.id === uid);
-        const ch    = CHAPTERS.find(c => c.id === chapterId);
+        const user = await Store.getUserById(uid);
+        const ch   = CHAPTERS.find(c => c.id === chapterId);
         if (!confirm(`"${user.name}" மாணவரின் "${ch.title} – ${ch.subtitle}" தேர்வை மீட்டமைக்கணுமா?`)) return;
         this.loading(true);
         try { await Store.clearChapter(uid, chapterId); await this.renderTeacherDashboard(); }
@@ -1273,8 +1276,7 @@
       },
 
       async deleteStudent(uid) {
-        const users = await Store.getUsers();
-        const user  = users.find(u => u.id === uid);
+        const user = await Store.getUserById(uid);
         if (!user) return;
         if (!confirm(`"${user.name}" மாணவரை நீக்கணுமா?\nதேர்வு பதில்கள் நிரந்தரமாக நீக்கப்படும்.`)) return;
         this.loading(true);
@@ -1302,59 +1304,34 @@
         finally { this.loading(false); }
       },
 
-      // ─── Student / User Screen ───────────────────────────────
-      async renderUserScreen() {
-        this.loading(true);
-        try {
-          const [users, allAnswers] = await Promise.all([Store.getUsers(), Store.getAllAnswers()]);
-          const grid = document.getElementById('userGrid');
-          grid.innerHTML = '';
-          users.forEach(u => {
-            const ua    = allAnswers[u.id] || {};
-            const stats = Store.totalStats(ua);
-            const div   = document.createElement('div');
-            div.className = 'user-card';
-            div.onclick   = () => this.promptPin(u.id, u.name);
-            div.innerHTML = `
-              <div class="avatar">${u.name.slice(0,2).toUpperCase()}</div>
-              <div class="name">${u.name}</div>
-              <div class="uscore">மதிப்பெண்: <span>${stats.correct}/${stats.total}</span></div>`;
-            grid.appendChild(div);
-          });
-          this.showScreen('screen-users');
-        } catch(e) {
-          alert('தரவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.');
-        } finally { this.loading(false); }
+      // ─── Student Login ───────────────────────────────────────
+      goStudentLogin() {
+        document.getElementById('studentPin').value = '';
+        document.getElementById('studentDob').value = '';
+        document.getElementById('studentLoginErr').style.display = 'none';
+        this.showScreen('screen-users');
+        setTimeout(() => document.getElementById('studentPin').focus(), 100);
       },
 
-      promptPin(uid, name) {
-        this.pendingPinUid = uid;
-        document.getElementById('pinModalName').textContent = `வணக்கம் ${name}!`;
-        document.getElementById('pinInput').value = '';
-        document.getElementById('pinErr').style.display = 'none';
-        document.getElementById('pinModal').classList.add('show');
-        setTimeout(() => document.getElementById('pinInput').focus(), 100);
-      },
-
-      async verifyPin() {
-        const pin   = document.getElementById('pinInput').value.trim();
-        const errEl = document.getElementById('pinErr');
-        if (!pin) { document.getElementById('pinInput').focus(); return; }
+      async verifyStudentLogin() {
+        const pin   = document.getElementById('studentPin').value.trim();
+        const dob   = document.getElementById('studentDob').value.trim();
+        const errEl = document.getElementById('studentLoginErr');
+        errEl.style.display = 'none';
+        if (!pin || !dob) {
+          errEl.style.display = 'block'; return;
+        }
         this.loading(true);
         try {
-          const ok = await Store.verifyPin(this.pendingPinUid, pin);
-          if (ok) {
-            this.closeModal();
-            const users = await Store.getUsers();
-            this.currentUser = users.find(u => u.id === this.pendingPinUid);
+          const user = await Store.verifyPinDob(pin, dob);
+          if (user) {
+            this.currentUser = user;
             this.currentRole = 'student';
-            Store.setCurrent(this.pendingPinUid);
-            this.pendingPinUid = null;
+            Store.setCurrent(user.id);
             await this.renderHomeScreen();
           } else {
-            errEl.textContent = 'தவறான PIN. மீண்டும் முயற்சிக்கவும்.';
             errEl.style.display = 'block';
-            document.getElementById('pinInput').select();
+            document.getElementById('studentPin').select();
           }
         } catch(e) {
           errEl.textContent = 'இணைப்பு தவறு. மீண்டும் முயற்சிக்கவும்.';
@@ -1371,6 +1348,7 @@
       showAddUserModal() {
         document.getElementById('newUserName').value = '';
         document.getElementById('newUserPin').value  = '';
+        document.getElementById('newUserDob').value  = '';
         document.getElementById('addUserErr').style.display = 'none';
         document.getElementById('addUserModal').classList.add('show');
         setTimeout(() => document.getElementById('newUserName').focus(), 100);
@@ -1383,15 +1361,25 @@
       async addUser() {
         const name  = document.getElementById('newUserName').value.trim();
         const pin   = document.getElementById('newUserPin').value.trim();
+        const dob   = document.getElementById('newUserDob').value.trim();
         const errEl = document.getElementById('addUserErr');
         errEl.style.display = 'none';
         if (!name) { document.getElementById('newUserName').focus(); return; }
         if (!/^\d{4}$/.test(pin)) {
           errEl.textContent = '4 இலக்க எண் PIN உள்ளிடவும்.'; errEl.style.display = 'block'; return;
         }
+        if (!/^\d{8}$/.test(dob)) {
+          errEl.textContent = 'பிறந்த தேதி DDMMYYYY வடிவத்தில் உள்ளிடவும்.'; errEl.style.display = 'block'; return;
+        }
         this.loading(true);
         try {
-          await Store.addUser(name, pin);
+          const pinUsed = await Store.checkPinExists(pin);
+          if (pinUsed) {
+            errEl.textContent = 'இந்த PIN ஏற்கனவே பயன்படுத்தப்பட்டது. வேறு PIN கொடுக்கவும்.';
+            errEl.style.display = 'block';
+            this.loading(false); return;
+          }
+          await Store.addUser(name, pin, dob);
           this.closeModal();
           await this.renderTeacherDashboard();
         } catch(e) {
@@ -1663,8 +1651,7 @@
         if (uid) {
           this.loading(true);
           try {
-            const users = await Store.getUsers();
-            const user  = users.find(u => u.id === uid);
+            const user = await Store.getUserById(uid);
             if (user) {
               this.currentUser = user;
               this.currentRole = 'student';
