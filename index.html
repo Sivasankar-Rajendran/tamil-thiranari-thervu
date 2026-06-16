@@ -1143,15 +1143,12 @@
           const cardId = `td-expand-${u.id}`;
           card.innerHTML = `
             <div class="td-student-header" style="cursor:pointer;" onclick="App.toggleStudentCard('${cardId}', this)">
-              <div class="avatar" style="width:42px;height:42px;font-size:16px;flex-shrink:0;">
-                ${u.name.slice(0,2).toUpperCase()}
-              </div>
               <div style="flex:1;">
-                <div style="font-weight:700;font-size:15px;">${u.name}</div>
-                <div style="font-size:12px;color:var(--muted);">மொத்தம்: ${ts.correct}/${ts.total}</div>
+                <div style="font-weight:700;font-size:19px;">${u.name}</div>
               </div>
+              <span style="font-weight:700;font-size:15px;color:var(--accent);margin-right:12px;">${ts.correct}/${ts.total}</span>
               <span class="td-expand-icon">▼</span>
-              <button class="td-delete-btn" onclick="event.stopPropagation();App.deleteStudent('${u.id}')" title="மாணவரை நீக்கு">🗑️ நீக்கு</button>
+              <button class="td-delete-btn" onclick="event.stopPropagation();App.deleteStudent('${u.id}')" title="மாணவரை நீக்கு">🗑️</button>
             </div>
             <div id="${cardId}" class="td-ch-list" style="display:none;">${chapRows}</div>`;
           list.appendChild(card);
