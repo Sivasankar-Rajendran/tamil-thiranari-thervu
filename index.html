@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="ta">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700;900&family=Noto+Serif+Tamil:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fdf6ec;
+      --card: #ffffff;
+      --primary: #8b1a1a;
+      --accent: #d4820a;
+      --text: #1a1a1a;
+      --muted: #6b5e4e;
+      --border: #e8d5b0;
+      --correct: #1e6b3c;
+      --correct-bg: #c8f5d4;
+      --wrong: #8b1a1a;
+      --wrong-bg: #fde8e8;
+      --highlight: #fff3cd;
+      --shadow: 0 4px 24px rgba(139, 26, 26, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans Tamil', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; min-height: 100vh; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #8b1a1a 0%, #5c0f0f 40%, #2a3d1e 100%);
+      color: white;
+      text-align: center;
+      padding: 40px 24px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -60px; left: -60px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: rgba(212, 130, 10, 0.18);
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: -80px; right: -40px;
+      width: 280px; height: 280px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .hero h1 {
+      font-family: 'Noto Serif Tamil', serif;
+      font-size: clamp(20px, 4vw, 34px);
+      font-weight: 700;
+      position: relative; z-index: 1;
+    }
+    .hero p { font-size: 14px; margin-top: 8px; opacity: 0.85; position: relative; z-index: 1; }
+    .hero .badge {
+      display: inline-block;
+      background: var(--accent);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 12px; font-weight: 600;
+      margin-top: 12px;
+      position: relative; z-index: 1;
+    }
+    .hero-nav {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding: 10px 16px 0;
+      position: relative; z-index: 1;
+    }
+    .hero-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-family: inherit; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hero-btn:hover { background: rgba(255, 255, 255, 0.28); }
+
+    /* CONTAINER */
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+    .section-title {
+      font-family: 'Noto Serif Tamil', serif;
+      font-size: 17px;
+      color: var(--primary);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    /* USER CARDS */
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .user-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .user-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 24px rgba(139, 26, 26, 0.15);
+      transform: translateY(-2px);
+    }
+    .user-card .avatar {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      font-size: 20px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+    }
+    .user-card .name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .user-card .uscore { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .user-card .uscore span { color: var(--primary); font-weight: 700; }
+
+    .user-card-add {
+      background: var(--highlight);
+      border: 2px dashed var(--accent);
+    }
+    .user-card-add:hover { background: #fffae0; border-color: var(--primary); }
+    .user-card-add .plus { font-size: 30px; color: var(--accent); margin-bottom: 6px; }
+    .user-card-add .lbl { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 340px; width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    .modal h3 {
+      font-family: 'Noto Serif Tamil', serif;
+      color: var(--primary);
+      font-size: 17px;
+      margin-bottom: 14px;
+    }
+    .modal input {
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: inherit; font-size: 15px;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 14px;
+    }
+    .modal input:focus { border-color: var(--primary); }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* BUTTONS */
+    .btn {
+      border: none; border-radius: 10px;
+      padding: 10px 20px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: #5c0f0f; }
+    .btn-secondary { background: #f0e8e0; color: var(--muted); }
+    .btn-secondary:hover { background: #e8d5b0; }
+
+    /* WELCOME BANNER */
+    .welcome-banner {
+      background: linear-gradient(135deg, var(--primary), #a03030);
+      color: white;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .welcome-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      font-size: 20px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .welcome-text h2 { font-size: 15px; font-weight: 700; }
+    .welcome-text p { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+
+    /* CHAPTER CARDS */
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .chapter-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .chapter-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 8px 32px rgba(139, 26, 26, 0.15);
+      transform: translateY(-2px);
+    }
+    .chapter-card .ch-icon { font-size: 26px; margin-bottom: 8px; }
+    .chapter-card .ch-num { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; }
+    .chapter-card .ch-title {
+      font-family: 'Noto Serif Tamil', serif;
+      font-size: 16px; color: var(--primary); font-weight: 700;
+      margin: 3px 0;
+    }
+    .chapter-card .ch-sub { font-size: 12px; color: var(--muted); }
+    .ch-prog { margin-top: 12px; }
+    .ch-prog-bar { height: 5px; background: #eee; border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+    .ch-prog-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 3px; transition: width 0.4s; }
+    .ch-prog-txt { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+    .ch-prog-txt .sc { color: var(--primary); font-weight: 700; }
+    .ch-status {
+      display: inline-block;
+      border-radius: 12px;
+      padding: 3px 10px;
+      font-size: 11px; font-weight: 700;
+      margin-top: 8px;
+    }
+    .ch-status.not-started { background: #f0e8e0; color: var(--muted); }
+    .ch-status.in-progress { background: #fff3cd; color: #7a5500; }
+    .ch-status.completed { background: var(--correct-bg); color: var(--correct); }
+
+    /* BACK BAR */
+    .back-bar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px;
+      background: white;
+      border-bottom: 2px solid var(--border);
+      position: sticky; top: 0; z-index: 200;
+    }
+    .back-btn {
+      background: none;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-family: inherit; font-size: 12px;
+      cursor: pointer; color: var(--muted); font-weight: 600;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .back-bar .bar-title { font-size: 14px; font-weight: 700; color: var(--primary); font-family: 'Noto Serif Tamil', serif; }
+
+    /* SCOREBOARD */
+    .scoreboard {
+      background: white;
+      border-bottom: 3px solid var(--border);
+      padding: 10px 18px;
+      display: flex; flex-wrap: wrap;
+      gap: 12px; align-items: center; justify-content: space-between;
+      position: sticky; top: 47px; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+    }
+    .score-item { text-align: center; }
+    .score-item .val { font-size: 20px; font-weight: 900; color: var(--primary); line-height: 1; }
+    .score-item .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .progress-bar { flex: 1; min-width: 80px; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 3px; transition: width 0.4s; width: 0%; }
+
+    /* SECTION NAV */
+    .section-nav {
+      display: flex; flex-wrap: wrap; gap: 7px;
+      padding: 14px 16px 0;
+      max-width: 900px; margin: 0 auto;
+    }
+    .section-tab {
+      background: white;
+      border: 2px solid var(--border);
+      color: var(--muted);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px; cursor: pointer;
+      font-family: inherit; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .section-tab.active, .section-tab:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* QUIZ MAIN */
+    .quiz-main { max-width: 900px; margin: 0 auto; padding: 18px 16px; }
+
+    /* QUESTION CARD */
+    .q-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .q-card:hover { box-shadow: 0 6px 32px rgba(139, 26, 26, 0.12); }
+    .q-card.answered-correct { border-color: var(--correct); }
+    .q-card.answered-wrong { border-color: var(--wrong); }
+
+    .q-header { padding: 14px 16px 8px; display: flex; gap: 10px; align-items: flex-start; }
+    .q-num {
+      background: var(--primary); color: white;
+      border-radius: 8px; min-width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+    }
+    .q-text { font-size: 14px; line-height: 1.7; font-weight: 600; color: var(--text); }
+    .q-result {
+      display: none; font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 10px;
+      margin-left: auto; flex-shrink: 0; white-space: nowrap;
+    }
+    .q-result.show { display: inline-block; }
+    .q-result.correct-lbl { background: var(--correct-bg); color: var(--correct); }
+    .q-result.wrong-lbl { background: var(--wrong-bg); color: var(--wrong); }
+
+    .q-options { padding: 2px 16px 14px 54px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    @media(max-width: 560px) { .q-options { grid-template-columns: 1fr; padding-left: 16px; } }
+
+    .opt-btn {
+      background: #faf6f0;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      text-align: left; cursor: pointer;
+      font-family: inherit; font-size: 13px; line-height: 1.5;
+      color: var(--text);
+      transition: all 0.18s;
+      display: flex; gap: 7px; align-items: flex-start;
+    }
+    .opt-btn:hover:not(:disabled) { background: var(--highlight); border-color: var(--accent); }
+    .opt-btn .opt-label { font-weight: 700; color: var(--primary); flex-shrink: 0; min-width: 18px; }
+    .opt-btn.correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); }
+    .opt-btn.correct .opt-label { color: var(--correct); }
+    .opt-btn.wrong { background: var(--wrong-bg); border-color: var(--wrong); color: var(--wrong); }
+    .opt-btn.wrong .opt-label { color: var(--wrong); }
+    .opt-btn:disabled { cursor: default; }
+
+    .explanation {
+      background: #f0f7f2;
+      border-left: 4px solid var(--correct);
+      padding: 10px 16px;
+      font-size: 13px; color: #1a4d2a;
+      display: none; line-height: 1.6;
+    }
+    .explanation.show { display: block; }
+    .explanation strong { color: var(--correct); }
+
+    /* SECTION PANEL */
+    .section-panel { display: none; }
+    .section-panel.active { display: block; }
+
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+      margin: 22px 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--border);
+    }
+    .section-header .icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .section-header h2 { font-family: 'Noto Serif Tamil', serif; font-size: 16px; color: var(--primary); }
+    .section-header .count {
+      margin-left: auto;
+      background: var(--primary); color: white;
+      border-radius: 12px; padding: 2px 10px;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* FINAL RESULT */
+    .final-result {
+      text-align: center; padding: 28px;
+      background: white; border-radius: 16px;
+      border: 2px solid var(--border);
+      margin-top: 20px; display: none;
+    }
+    .final-result.show { display: block; }
+    .final-result .big-score { font-size: 52px; font-weight: 900; color: var(--primary); font-family: 'Noto Serif Tamil', serif; }
+    .final-result p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+
+    /* TIP BOX */
+    .tip-box {
+      background: var(--highlight);
+      border: 1.5px solid #f0c040;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px; color: #7a5500;
+      margin-bottom: 16px; line-height: 1.6;
+    }
+
+    /* LEADERBOARD */
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+    .lb-table th {
+      background: var(--primary); color: white;
+      padding: 11px 14px; text-align: left;
+    }
+    .lb-table th:not(:first-child):not(:nth-child(2)) { text-align: center; }
+    .lb-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); }
+    .lb-table td:not(:first-child):not(:nth-child(2)) { text-align: center; }
+    .lb-table tr:last-child td { border-bottom: none; }
+    .lb-table tr.me { background: #fdf0d0; }
+    .lb-table tr:not(.me):hover { background: #fdf6ec; }
+    .lb-rank { font-weight: 900; color: var(--accent); font-size: 15px; }
+    .lb-name { font-weight: 700; }
+    .lb-score { font-weight: 700; color: var(--primary); }
+    .lb-score.done { color: var(--correct); }
+    .lb-score.nil { color: #ccc; }
+    .lb-total { font-weight: 900; font-size: 15px; color: var(--primary); }
+
+    footer {
+      text-align: center; padding: 20px;
+      color: var(--muted); font-size: 12px;
+      border-top: 1px solid var(--border); margin-top: 32px;
+    }
+
+    /* LANDING – role selection */
+    .role-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 20px; max-width: 480px; margin: 0 auto;
+    }
+    @media(max-width: 460px) { .role-grid { grid-template-columns: 1fr; } }
+    .role-card {
+      background: white; border: 2px solid var(--border);
+      border-radius: 20px; padding: 36px 20px;
+      text-align: center; cursor: pointer;
+      transition: all 0.2s; box-shadow: var(--shadow);
+    }
+    .role-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 8px 32px rgba(139,26,26,0.15); }
+    .role-card-teacher:hover { border-color: #2a6b3c; }
+    .role-icon { font-size: 50px; margin-bottom: 12px; }
+    .role-title { font-family: 'Noto Serif Tamil', serif; font-size: 20px; font-weight: 700; color: var(--primary); }
+    .role-card-teacher .role-title { color: #2a6b3c; }
+    .role-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+    /* TEACHER LOGIN */
+    .login-box {
+      background: white; border-radius: 16px;
+      padding: 32px 28px; box-shadow: var(--shadow);
+      border: 2px solid var(--border);
+      max-width: 380px; margin: 0 auto;
+    }
+    .login-box input {
+      width: 100%; border: 2px solid var(--border);
+      border-radius: 10px; padding: 10px 14px;
+      font-family: inherit; font-size: 15px; color: var(--text);
+      outline: none; margin-bottom: 10px; display: block;
+    }
+    .login-box input:focus { border-color: var(--primary); }
+
+    /* TEACHER DASHBOARD */
+    .td-student-card {
+      background: white; border: 1.5px solid var(--border);
+      border-radius: 14px; margin-bottom: 16px;
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .td-student-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      background: #faf6f0;
+    }
+    .td-ch-list { padding: 4px 0; }
+    .td-ch-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-bottom: 1px solid #f5efe3; flex-wrap: wrap;
+    }
+    .td-ch-row:last-child { border-bottom: none; }
+    .td-ch-name { flex: 1; font-size: 13px; color: var(--text); min-width: 140px; }
+    .td-score { font-weight: 700; font-size: 13px; min-width: 56px; text-align: right; }
+    .td-score.nil { color: #ccc; }
+    .td-score.in-prog { color: var(--accent); }
+    .td-score.done { color: var(--correct); }
+    .td-reset-btn {
+      background: var(--primary); color: white; border: none;
+      border-radius: 8px; padding: 5px 12px; font-size: 12px;
+      font-family: inherit; cursor: pointer; font-weight: 600;
+      transition: background 0.2s; white-space: nowrap;
+    }
+    .td-reset-btn:hover { background: #5c0f0f; }
+    .td-reset-disabled {
+      background: #eee; color: #bbb; border-radius: 8px;
+      padding: 5px 12px; font-size: 12px; font-weight: 600;
+    }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover { background: #b06a00; }
+    .td-no-students {
+      text-align: center; padding: 40px;
+      color: var(--muted); font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================
+       SCREEN: LANDING (role select)
+       ============================ -->
+  <div id="screen-landing" class="screen active">
+    <div class="hero">
+      <h1>10ஆம் வகுப்பு தமிழ்</h1>
+      <p>திறன் தேர்வு மையம்</p>
+      <span class="badge">TN Textbooks 2025</span>
+    </div>
+    <div class="container" style="padding-top:36px;">
+      <p class="section-title" style="text-align:center;border:none;">நீங்கள் யார்?</p>
+      <div class="role-grid">
+        <div class="role-card" onclick="App.goStudentLogin()">
+          <div class="role-icon">👨‍🎓</div>
+          <div class="role-title">மாணவர்</div>
+          <div class="role-sub">தேர்வு எழுத இங்கே அழுத்தவும்</div>
+        </div>
+        <div class="role-card role-card-teacher" onclick="App.goTeacherLogin()">
+          <div class="role-icon">👩‍🏫</div>
+          <div class="role-title">ஆசிரியர்</div>
+          <div class="role-sub">மாணவர்களை நிர்வகிக்க</div>
+        </div>
+      </div>
+    </div>
+    <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
+  </div>
+
+  <!-- ============================
+       SCREEN: STUDENT SELECTION
+       ============================ -->
+  <div id="screen-users" class="screen">
+    <div class="hero">
+      <div class="hero-nav">
+        <button class="hero-btn" onclick="App.showScreen('screen-landing')">← பின்செல்</button>
+      </div>
+      <h1>10ஆம் வகுப்பு தமிழ்</h1>
+      <p>திறன் தேர்வு மையம்</p>
+      <span class="badge">TN Textbooks 2025 · மாணவர் உள்நுழைவு</span>
+    </div>
+    <div class="container">
+      <p class="section-title">மாணவரைத் தேர்வு செய்யுங்கள்</p>
+      <div class="user-grid" id="userGrid"></div>
+    </div>
+    <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
+  </div>
+
+  <!-- ============================
+       SCREEN 2: HOME / CHAPTERS
+       ============================ -->
+  <div id="screen-home" class="screen">
+    <div class="hero">
+      <div class="hero-nav">
+        <button class="hero-btn" onclick="App.switchUser()">👤 மாற்று</button>
+      </div>
+      <h1>10ஆம் வகுப்பு தமிழ்</h1>
+      <p>TN Textbooks 2025 – திறன் தேர்வு மையம்</p>
+    </div>
+    <div class="container">
+      <div class="welcome-banner">
+        <div class="welcome-avatar" id="welcomeAvatar">-</div>
+        <div class="welcome-text">
+          <h2 id="welcomeName">-</h2>
+          <p id="welcomeStats">-</p>
+        </div>
+      </div>
+      <p class="section-title">இயல்கள் (அத்தியாயங்கள்)</p>
+      <div class="chapter-grid" id="chapterGrid"></div>
+    </div>
+    <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
+  </div>
+
+  <!-- ============================
+       SCREEN 3: QUIZ
+       ============================ -->
+  <div id="screen-quiz" class="screen">
+    <div class="back-bar">
+      <button class="back-btn" onclick="App.goHome()">← பின்செல்</button>
+      <span class="bar-title" id="quizChapterTitle">-</span>
+    </div>
+    <div class="scoreboard">
+      <div class="score-item">
+        <div class="val" id="qScore">0</div>
+        <div class="lbl">மதிப்பெண்</div>
+      </div>
+      <div class="score-item">
+        <div class="val" id="qCorrect">0</div>
+        <div class="lbl">சரி</div>
+      </div>
+      <div class="score-item">
+        <div class="val" id="qWrong">0</div>
+        <div class="lbl">தவறு</div>
+      </div>
+      <div class="score-item">
+        <div class="val" id="qAttempt">0</div>
+        <div class="lbl">முயற்சி</div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="qProgress"></div>
+      </div>
+    </div>
+    <div class="section-nav" id="sectionNav"></div>
+    <div class="quiz-main">
+      <div class="tip-box">
+        <strong>📌 வழிகாட்டி:</strong> விடையைத் தேர்வு செய்த பின் சரி/தவறு காட்டப்படும். உங்கள் முன்னேற்றம் தானாகவே சேமிக்கப்படும்.
+      </div>
+      <div id="sectionPanels"></div>
+      <div class="final-result" id="finalResult">
+        <div class="big-score" id="finalScore">0/0</div>
+        <p>மொத்த மதிப்பெண்கள்</p>
+        <p id="finalMsg" style="margin-top:10px;font-size:17px;font-weight:700;"></p>
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="App.goHome()">← முகப்புக்கு திரும்பு</button>
+      </div>
+    </div>
+    <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
+  </div>
+
+  <!-- ============================
+       SCREEN 4: LEADERBOARD
+       ============================ -->
+  <!-- leaderboard is now embedded in the teacher dashboard -->
+
+  <!-- ============================
+       SCREEN: TEACHER LOGIN
+       ============================ -->
+  <div id="screen-teacher-login" class="screen">
+    <div class="hero">
+      <div class="hero-nav">
+        <button class="hero-btn" onclick="App.showScreen('screen-landing')">← பின்செல்</button>
+      </div>
+      <h1>ஆசிரியர் உள்நுழைவு</h1>
+      <p>கடவுச்சொல் உள்ளிடவும்</p>
+    </div>
+    <div class="container" style="padding-top:36px;">
+      <div class="login-box">
+        <div style="text-align:center;font-size:52px;margin-bottom:14px;">👩‍🏫</div>
+        <p style="text-align:center;color:var(--muted);margin-bottom:18px;font-size:14px;">ஆசிரியர் கடவுச்சொல் உள்ளிடவும்</p>
+        <input type="password" id="teacherPwd" placeholder="கடவுச்சொல்"
+          onkeydown="if(event.key==='Enter') App.verifyTeacher()">
+        <p id="teacherPwdErr" style="color:var(--wrong);font-size:12px;margin-bottom:12px;display:none;">
+          கடவுச்சொல் தவறு. மீண்டும் முயற்சிக்கவும்.
+        </p>
+        <div class="modal-btns">
+          <button class="btn btn-secondary" onclick="App.showScreen('screen-landing')">ரத்து</button>
+          <button class="btn btn-primary" onclick="App.verifyTeacher()">உள்நுழை →</button>
+        </div>
+      </div>
+    </div>
+    <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
+  </div>
+
+  <!-- ============================
+       SCREEN: TEACHER DASHBOARD
+       ============================ -->
+  <div id="screen-teacher-dashboard" class="screen">
+    <div class="hero">
+      <div class="hero-nav">
+        <button class="hero-btn" onclick="App.showChangePwdModal()">🔑 கடவுச்சொல்</button>
+        <button class="hero-btn" onclick="App.teacherLogout()">வெளியேறு</button>
+      </div>
+      <h1>ஆசிரியர் கட்டுப்பாட்டு மையம்</h1>
+      <p>மாணவர்களின் தேர்வு நிர்வாகம்</p>
+    </div>
+    <div class="container">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <p class="section-title" style="margin-bottom:0;border:none;padding:0;">மாணவர்கள்</p>
+        <button class="btn btn-accent" onclick="App.showAddUserModal()">+ மாணவர் சேர்</button>
+      </div>
+      <div id="teacherStudentList"></div>
+
+      <!-- Collapsible scores section -->
+      <div style="margin-top:28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:0;cursor:pointer;" onclick="App.toggleScores()">
+          <p class="section-title" style="margin-bottom:0;border:none;padding:0;">🏆 அனைத்து மாணவர்களின் மதிப்பெண்கள்</p>
+          <button id="scoresToggleBtn" class="btn btn-secondary" style="min-width:90px;" onclick="event.stopPropagation();App.toggleScores()">▼ காட்டு</button>
+        </div>
+        <div id="scoresSection" style="display:none;margin-top:14px;overflow-x:auto;">
+          <table class="lb-table" id="lbTable"></table>
+        </div>
+      </div>
+    </div>
+    <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
+  </div>
+
+  <!-- ============================
+       MODAL: ADD USER
+       ============================ -->
+  <div class="modal-overlay" id="addUserModal">
+    <div class="modal">
+      <h3>புதிய மாணவர் சேர்க்க</h3>
+      <input type="text" id="newUserName" placeholder="மாணவரின் பெயர் உள்ளிடவும்" maxlength="30"
+        onkeydown="if(event.key==='Enter') App.addUser()">
+      <div class="modal-btns">
+        <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
+        <button class="btn btn-primary" onclick="App.addUser()">சேர்</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="changePwdModal">
+    <div class="modal">
+      <h3>🔑 கடவுச்சொல் மாற்று</h3>
+      <input type="password" id="newPwd1" placeholder="புதிய கடவுச்சொல்" maxlength="20">
+      <input type="password" id="newPwd2" placeholder="மீண்டும் உள்ளிடவும்" maxlength="20"
+        onkeydown="if(event.key==='Enter') App.saveNewPwd()">
+      <p id="pwdChangeErr" style="color:var(--wrong);font-size:12px;margin-bottom:10px;display:none;"></p>
+      <div class="modal-btns">
+        <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
+        <button class="btn btn-primary" onclick="App.saveNewPwd()">சேமி</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  QUESTION DATA – organized by chapter then section
+    // ============================================================
+    const CHAPTERS = [
+      {
+        id: 'chapter1',
+        number: 1,
+        title: 'இயல் 1',
+        subtitle: 'அமுதஊற்று',
+        icon: '📚',
+        sections: [
+          {
+            id: 'sec1',
+            name: 'கவிதைகள்',
+            subtitle: 'அன்னை மொழியே & காலக்கணிதம்',
+            icon: '📜',
+            bg: '#fceaea',
+            questions: [
+              { q: "'அன்னை மொழியே' என்னும் கவிதையை இயற்றியவர் யார்?", opts: ["கண்ணதாசன்", "பாவலரேறு பெருஞ்சித்திரனார்", "ப.சிங்காரம்", "தேவநேயப் பாவாணர்"], ans: 1, exp: "'அன்னை மொழியே' என்னும் கவிதையை பாவலரேறு பெருஞ்சித்திரனார் இயற்றினார்." },
+              { q: "'அன்னை மொழியே' கவிதையில் 'அழகார்ந்த செந்தமிழே' என்று யாரை வாழ்த்துகிறார்?", opts: ["தமிழ்நாட்டை", "தமிழ் மொழியை", "தமிழ் இலக்கியத்தை", "பண்டைய தமிழரை"], ans: 1, exp: "'அழகார்ந்த செந்தமிழே' என்று தமிழ் மொழியையே வாழ்த்துகிறார்." },
+              { q: "'முன்னைக்கும் முன்னை முகிழ்த்த நறுங்கனியே' என்ற வரி எந்தக் கவிதையிலிருந்து எடுக்கப்பட்டது?", opts: ["காலக்கணிதம்", "அன்னை மொழியே", "புயலிலே ஒரு தோணி", "கலக்கும் காற்று"], ans: 1, exp: "இவ்வரி 'அன்னை மொழியே' என்னும் கவிதையிலிருந்து எடுக்கப்பட்டது." },
+              { q: "'கன்னிக் குமரிக் கடல்கொண்ட நாட்டினடியில்' என்ற தொடர் எதை உணர்த்துகிறது?", opts: ["தமிழ்நாட்டின் வரலாறை", "தமிழ் மொழி மிகவும் தொன்மையானது என்பதை", "கடல் வளத்தை", "மலை வளத்தை"], ans: 1, exp: "கன்னிக் குமரிக் கடல் என்பது குமரிக் கண்டம் கடலில் மூழ்கியது என்னும் வரலாற்று உண்மையை உணர்த்துகிறது." },
+              { q: "'தென்னன் மகளே! திருக்குறளின் மாண்புகழே!' என்று யாரை அழைக்கிறார் கவிஞர்?", opts: ["தமிழ்த் தாயை", "தமிழ் மொழியை", "சரஸ்வதியை", "கவிதையை"], ans: 1, exp: "'தென்னன் மகளே' என்று தமிழ் மொழியையே அழைக்கிறார்." },
+              { q: "'காலக்கணிதம்' என்னும் கவிதையை இயற்றியவர் யார்?", opts: ["பாவலரேறு பெருஞ்சித்திரனார்", "ப.சிங்காரம்", "கண்ணதாசன்", "கம்பர்"], ans: 2, exp: "'காலக்கணிதம்' என்னும் கவிதையை கண்ணதாசன் இயற்றினார்." },
+              { q: "கண்ணதாசனின் இயற்பெயர் என்ன?", opts: ["முத்தையா", "இராமசாமி", "கண்ணன்", "சுப்பிரமணியன்"], ans: 0, exp: "கண்ணதாசனின் இயற்பெயர் 'முத்தையா' ஆகும்." },
+              { q: "கண்ணதாசன் பிறந்த ஊர் எது?", opts: ["சென்னை", "சிவகங்கை மாவட்டம் சிறுகூடல்பட்டி", "மதுரை", "திருவனந்தபுரம்"], ans: 1, exp: "கண்ணதாசன் சிவகங்கை மாவட்டத்தின் சிறுகுடல்பட்டி என்னும் ஊரில் பிறந்தார்." },
+              { q: "'காலக்கணிதம்' என்ற கவிதை எந்த நூலில் இடம்பெற்றுள்ளது?", opts: ["உலகநூறு", "கண்ணதாசன் கவிதைகள்", "கலங்காதிரு மனமே", "மகபுகவஞ்சி"], ans: 1, exp: "'காலக்கணிதம்' என்னும் கவிதை 'கண்ணதாசன் கவிதைகள்' என்னும் தொகுப்பில் இடம்பெற்றுள்ளது." },
+              { q: "'கருப்படு பொருளை உருப்படவைப்பேன்' – இவ்வரி எந்த கவிதையிலிருந்து எடுக்கப்பட்டது?", opts: ["அன்னை மொழியே", "காலக்கணிதம்", "புயலிலே ஒரு தோணி", "பாவாணர் பார்வையில்"], ans: 1, exp: "இவ்வரி கண்ணதாசனின் 'காலக்கணிதம்' கவிதையிலிருந்து எடுக்கப்பட்டது." },
+              { q: "'நானே தொடக்கம்; நானே முடிவு; நானுரைப்பதுதான் நாட்டின் சட்டம்' என்று யார் கூறுகிறார்?", opts: ["கம்பர்", "பாரதி", "கண்ணதாசன்", "பாவாணர்"], ans: 2, exp: "கண்ணதாசன் 'காலக்கணிதம்' கவிதையில் இவ்வாறு கூறுகிறார்." },
+              { q: "'மாற்றம் எனது மானிட தத்துவம்' என்று கூறியவர் யார்?", opts: ["கண்ணதாசன்", "பாரதி", "திருவள்ளுவர்", "கம்பர்"], ans: 0, exp: "கண்ணதாசன் 'காலக்கணிதம்' கவிதையில் இவ்வாறு கூறினார்." },
+              { q: "கண்ணதாசனுக்கு சாகித்ய அகாதமி விருது கிடைத்த நூல் எது?", opts: ["காலக்கணிதம்", "சேரமான் காதலி", "கலங்காதிரு மனமே", "கண்ணதாசன் கவிதைகள்"], ans: 1, exp: "'சேரமான் காதலி' என்னும் புதினத்திற்கு கண்ணதாசனுக்கு சாகித்ய அகாதமி விருது வழங்கப்பட்டது." },
+              { q: "'பண்டோர் கம்பன், பாரதி, தாசன் சொல்லா தனசில சொல்லிட முனைவேன்' – இவ்வரியில் 'தாசன்' என்பது யாரைக் குறிக்கிறது?", opts: ["கண்ணதாசனை", "பாரதிதாசனை", "தியாகராஜ தாசனை", "திருப்பாண் ஆழ்வாரை"], ans: 1, exp: "'தாசன்' என்பது பாரதிதாசனை குறிக்கிறது." },
+              { q: "'செந்தமிழே! உள்ளுயிரே செப்பரிய நின்பெருமை' – இவ்வரி எந்தக் கவிதையிலுள்ளது?", opts: ["காலக்கணிதம்", "அன்னை மொழியே", "புயலிலே ஒரு தோணி", "கலக்கும் காற்று"], ans: 1, exp: "இவ்வரி 'அன்னை மொழியே' என்னும் கவிதையிலுள்ளது." },
+              { q: "பாவலரேறு பெருஞ்சித்திரனாரின் இயற்பெயர் என்ன?", opts: ["இராசமாணிக்கம்", "துரை. இராசமாணிக்கம்", "கனிசாறு", "வெங்கடசாமி"], ans: 1, exp: "பாவலரேறு பெருஞ்சித்திரனாரின் இயற்பெயர் துரை. இராசமாணிக்கம் ஆகும்." },
+              { q: "'வண்டானது செந்தாமரைத் தேனைக் குடித்துச் சிறகைச்சுப் பாடும்' – இவ்வரி எந்தக் கவிதையிலுள்ளது?", opts: ["காலக்கணிதம்", "அன்னை மொழியே", "கலக்கும் காற்று", "புயல்"], ans: 1, exp: "இவ்வரி 'அன்னை மொழியே' என்னும் கவிதையிலுள்ளது." },
+              { q: "பாவலரேறு பெருஞ்சித்திரனார் எழுதிய நூல்களில் சேராதது எது?", opts: ["உலகியல் நூறு", "கனிசாறு", "காலக்கணிதம்", "பள்ளிப் பறவைகள்"], ans: 2, exp: "'காலக்கணிதம்' கண்ணதாசன் இயற்றியது; உலகியல் நூறு, கனிசாறு, பள்ளிப் பறவைகள் ஆகியவை பெருஞ்சித்திரனாரின் நூல்கள்." },
+              { q: "கண்ணதாசனின் தாயின் பெயர் என்ன?", opts: ["கமலா", "விசாலாட்சி", "மீனாட்சி", "சரஸ்வதி"], ans: 1, exp: "கண்ணதாசனின் தாயின் பெயர் விசாலாட்சி; தந்தையின் பெயர் சத்தப்பன்." },
+              { q: "கண்ணதாசனின் தந்தையின் பெயர் என்ன?", opts: ["முத்தையா", "சத்தப்பன்", "இராமசாமி", "கண்ணன்"], ans: 1, exp: "கண்ணதாசனின் தந்தையின் பெயர் சத்தப்பன்; தாயின் பெயர் விசாலாட்சி." },
+              { q: "'புவியில் நானொர் புகழுடைத் தெய்வம்' – இவ்வரி எந்தக் கவிதையில் உள்ளது?", opts: ["அன்னை மொழியே", "காலக்கணிதம்", "கலங்காதிரு மனமே", "மகபுகுவஞ்சி"], ans: 1, exp: "இவ்வரி கண்ணதாசனின் 'காலக்கணிதம்' கவிதையில் உள்ளது." },
+              { q: "'செல்வர்தங் கையில் சிறைப்பட மாட்டேன்; தேவி வாளுக்கும் தெப்பட மாட்டேன்!' – யார் கூற்று?", opts: ["பாவலரேறு", "பாவாணர்", "கண்ணதாசன்", "கம்பர்"], ans: 2, exp: "கண்ணதாசன் 'காலக்கணிதம்' கவிதையில் தன் சுதந்திர மனப்பான்மையை வெளிப்படுத்தி இவ்வாறு கூறுகிறார்." },
+              { q: "'உண்டாயின்பிறர் உண்ண தருவேன்; இல்லாயினெழர் இல்லம் தட்டுவேன்!' – இவ்வரிகள் எந்தக் கவிதையில்?", opts: ["அன்னை மொழியே", "காலக்கணிதம்", "மகபுகுவஞ்சி", "கலங்காதிரு மனமே"], ans: 1, exp: "இவ்வரிகள் கண்ணதாசனின் 'காலக்கணிதம்' கவிதையில் உள்ளன." },
+              { q: "'ஆக்கல் அளித்தல் அழித்தல் இம்மூன்றும் அவனும் நானுமே அறிந்தவை' – 'அவன்' என்பது யாரைக் குறிக்கிறது?", opts: ["கம்பனை", "இறைவனை", "அரசனை", "தந்தையை"], ans: 1, exp: "'அவன்' என்பது இறைவனை குறிக்கிறது; படைத்தல் காத்தல் அழித்தல் மூன்றும் இறைவனுக்கும் கவிஞனுக்கும் பொதுவானவை என்று கூறுகிறார்." },
+              { q: "'பண்டோர் கம்பன், பாரதி, தாசன்' – 'கம்பன்' என்பது யாரைக் குறிக்கிறது?", opts: ["கம்ப நாட்டாழ்வாரை", "கம்பரை", "கண்ணதாசனை", "பாவாணரை"], ans: 1, exp: "'கம்பன்' என்பது இராமாயணம் இயற்றிய மகாகவி கம்பரை குறிக்கிறது." },
+              { q: "'வண்டாப் பெழுந்து மலர்களில் அமர்வேன்; வாய்ப்புறத்தேனை ஊர்ப்புறந் தருவேன்!' – இவ்வரிகளில் கவிஞர் தன்னை எதனுடன் ஒப்பிடுகிறார்?", opts: ["தேனீயுடன்", "வண்டுடன்", "மலருடன்", "ஈயுடன்"], ans: 1, exp: "கவிஞர் தன்னை வண்டுடன் ஒப்பிட்டு, தான் கவிதை எழுதுவதை தேனை பரப்புவதாக உவமிக்கிறார்." },
+              { q: "'புகழ்ந்தால் என்னுடல் புல்லரிக் காது; இகழ்ந்தால் என்மனம் இறந்து விடாது!' – இவ்வரிகள் எந்தக் கவிதையில்?", opts: ["அன்னை மொழியே", "காலக்கணிதம்", "கலங்காதிரு மனமே", "சேரமான் காதலி"], ans: 1, exp: "இவ்வரிகள் கண்ணதாசனின் 'காலக்கணிதம்' கவிதையில் உள்ளன." },
+              { q: "'மாற்றம் எனது மானிட தத்துவம்; மாறும் உலகின் மகாத்துவம் அறிவேன்!' – கவிஞரின் தத்துவம் என்ன?", opts: ["நிலையற்ற தன்மை", "மாற்றமே வாழ்வின் அடிப்படை", "ஒற்றுமையே வலிமை", "அன்பே அருள்"], ans: 1, exp: "மாற்றமே மனித வாழ்வின் தத்துவம் என்றும் மாறும் உலகின் பெருமையை அறிவேன் என்றும் கவிஞர் கூறுகிறார்." },
+              { q: "பெருஞ்சித்திரனாரின் 'பாவியக்கொத்து' என்பது எந்த வகை நூல்?", opts: ["கட்டுரை நூல்", "கவிதை நூல்", "புதினம்", "நாடகம்"], ans: 1, exp: "'பாவியக்கொத்து' பெருஞ்சித்திரனாரின் கவிதை நூல்களில் ஒன்று." },
+              { q: "'பாசம் மிகுத்தேன்; பற்றுதல் மிகுத்தேன்! ஆனசை தருவன அனைத்தும் பற்றுவேன்!' – இவ்வரிகளில் 'பாசம்' என்பதன் பொருள்?", opts: ["வெறுப்பு", "அன்பு", "கோபம்", "ஆசை"], ans: 1, exp: "'பாசம்' என்பது அன்பு என்று பொருள். கண்ணதாசன் அன்பும் பற்றும் மிக்கவர் என்று தன்னை வருணிக்கிறார்." },
+              { q: "பெருஞ்சித்திரனாரின் 'மகபுகுவஞ்சி' என்னும் நூல் என்ன வகை?", opts: ["கட்டுரை நூல்", "கவிதை நூல்", "புதினம்", "நாடகம்"], ans: 1, exp: "'மகபுகுவஞ்சி' பெருஞ்சித்திரனாரின் கவிதை நூல்களில் ஒன்று." },
+            ]
+          },
+          {
+            id: 'sec2',
+            name: 'உரைநடை & கதை',
+            subtitle: 'பாவாணர் பார்வையில் & புயலிலே ஒரு தோணி',
+            icon: '📖',
+            bg: '#e8f5ee',
+            questions: [
+              { q: "'புயலிலே ஒரு தோணி' என்னும் கதையை எழுதியவர் யார்?", opts: ["பாவாணர்", "கண்ணதாசன்", "ப.சிங்காரம்", "பாரதி"], ans: 2, exp: "'புயலிலே ஒரு தோணி' என்னும் கதையை ப.சிங்காரம் எழுதினார்." },
+              { q: "'புயலிலே ஒரு தோணி' கதையின் கதாநாயகன் பெயர் என்ன?", opts: ["சிங்காரம்", "பாண்டியன்", "கப்பித்தான்", "மதியழகன்"], ans: 1, exp: "'புயலிலே ஒரு தோணி' கதையின் கதாநாயகன் பெயர் பாண்டியன்." },
+              { q: "'புயலிலே ஒரு தோணி' எந்த நூலில் இடம்பெற்றுள்ளது?", opts: ["கடற்கத்தை", "புலம்பெயர்ந்த தமிழர்கள் பற்றிய முதல் புதினம்", "கடட்கூத்து", "ஒரு தேசம்"], ans: 1, exp: "புலம்பெயர்ந்த தமிழர்கள் பற்றிய முதல் புதினம் 'புயலிலே ஒரு தோணி' ஆகும்." },
+              { q: "'புயலிலே ஒரு தோணி' கதையில் தோணி எங்கே சென்றது?", opts: ["இலங்கை", "இந்தோனேசியா", "மலேசியா", "சிங்கப்பூர்"], ans: 1, exp: "'புயலிலே ஒரு தோணி' கதையில் இந்தோனேசியாவிலுள்ள பிலவான் என்னும் இடத்திற்கு சென்றது." },
+              { q: "ப.சிங்காரத்தின் வாழ்ந்த காலம் என்ன?", opts: ["1910-1980", "1920-1997", "1930-2000", "1915-1990"], ans: 1, exp: "ப.சிங்காரத்தின் வாழ்ந்த காலம் 1920 – 1997 ஆகும்." },
+              { q: "'தொங்கான்' என்னும் சொல் எதன் மாலும் குறிக்கிறது?", opts: ["கப்பல்", "கம்பு", "கயிறு", "பாய்மரம்"], ans: 0, exp: "'தொங்கான்' என்பது கப்பல் என்பதன் மாலும் (மலாய் மொழி) ஆகும்." },
+              { q: "கதையில் புயல் வந்த போது வானம் எப்படி இருந்தது என்று சிங்காரம் விவரிக்கிறார்?", opts: ["தெளிவாக இருந்தது", "உடைந்துகொட்டும் வெள்ளம் கொட்டியது", "வெய்யில் காய்ந்தது", "மழை இல்லாமல் இருந்தது"], ans: 1, exp: "வானம் உடைந்துகொட்டும் வெள்ளம் கொட்டியது என்று விவரிக்கிறார்." },
+              { q: "'பிலவான்' என்பது எங்குள்ள இடம்?", opts: ["மலேசியா", "இந்தோனேசியா", "சிங்கப்பூர்", "பர்மா"], ans: 1, exp: "'பிலவான்' என்பது இந்தோனேசியாவிலுள்ள இடம்." },
+              { q: "ப.சிங்காரம் எந்த மாவட்டத்தை சேர்ந்தவர்?", opts: ["திருவனந்தபுரம்", "மதுரை", "சிவகங்கை", "சிங்கம்புணரி"], ans: 3, exp: "ப.சிங்காரம் சிவகங்கை மாவட்டம், சிங்கம்புணரியைச் சேர்ந்தவர்." },
+              { q: "'பாவாணர் பார்வையில் தமிழ்ச் சொல்வளம்' என்னும் பாடப்பகுதியில் பாவாணர் எதன் சிறப்பை விளக்குகிறார்?", opts: ["தமிழ் கவிதையின் சிறப்பை", "தமிழ் மொழியின் சொல்வளத்தை", "தமிழ் இலக்கியத்தின் சிறப்பை", "தமிழ் அரசின் சிறப்பை"], ans: 1, exp: "பாவாணர் தமிழ் மொழியின் சொல்வளத்தை விளக்குகிறார்." },
+              { q: "பாவாணரின் பட்டப்பெயர் என்ன?", opts: ["மொழிஞாயிறு", "கவிஞர்", "செந்தமிழ் வித்தகர்", "தமிழ் வல்லார்"], ans: 0, exp: "தேவநேயப் பாவாணர் 'மொழிஞாயிறு' என்று போற்றப்படுகிறார்." },
+              { q: "'சொல்வளம் நிறைந்த மொழியானது அது பயன்படுத்தப்படும் நாட்டின் வளத்தையும் நாகரிகத்தையும் உணர்த்துவதுடன்' – இது யார் கூற்று?", opts: ["கண்ணதாசன்", "பாவலரேறு பெருஞ்சித்திரனார்", "தேவநேயப் பாவாணர்", "ப.சிங்காரம்"], ans: 2, exp: "இது தேவநேயப் பாவாணரின் கூற்று." },
+              { q: "'புயலிலே ஒரு தோணி' கதையில் 'கப்பித்தான்' என்பது என்ன?", opts: ["மாலுமி", "கப்பலின் தலைவன்", "கடல் கடவுள்", "புயல்"], ans: 1, exp: "'கப்பித்தான்' என்பது கப்பலின் தலைவனை (captain) குறிக்கும் சொல்." },
+              { q: "'மாலுமிகள்' என்பவர்கள் யார்?", opts: ["கடற்கரை மக்கள்", "கப்பல் மாலுமிகள் – கடலோடிகள்", "மீனவர்கள்", "நாவிகப் படை வீரர்கள்"], ans: 1, exp: "'மாலுமிகள்' என்பவர்கள் கப்பலில் பணிபுரியும் கடலோடிகள் (sailors)." },
+              { q: "'பவ்வம்' என்னும் சொல் எதைக் குறிக்கிறது?", opts: ["புயல்", "கடல்", "கடற்கரை", "தோணி"], ans: 1, exp: "'பவ்வம்' என்பது கடல் என்பதன் மரபுச் சொல்." },
+              { q: "'சிப்பம்' என்னும் சொல் எதைக் குறிக்கிறது?", opts: ["கப்பல்", "கட்டு / மூட்டை", "கயிறு", "பாய்மரம்"], ans: 1, exp: "'சிப்பம்' என்பது கட்டு அல்லது மூட்டை என்று பொருள்." },
+              { q: "'புயலிலே ஒரு தோணி' கதையில் 'பறவை மீன்' என்பது எது?", opts: ["கடலில் பறக்கும் மீன் வகை", "பறவை போல பறக்கும் மீன்", "மீன் உண்ணும் பறவை", "ஆமை வகை"], ans: 1, exp: "கடலில் பறக்கும் மீன் வகையை 'பறவை மீன்' என்று அழைக்கிறார் ப.சிங்காரம்." },
+              { q: "'அவுலியா மீன்' என்பது எந்த மீனைக் குறிக்கிறது?", opts: ["கடற்சிங்கம்", "கடற்பசு", "கடலை மீன்", "சுறா மீன்"], ans: 1, exp: "'அவுலியா மீன்' என்பது கடற்பசு (sea cow / dugong) போன்ற கடல் உயிரினத்தை குறிக்கிறது." },
+              { q: "'புயலிலே ஒரு தோணி' கதையில் ஜப்பான் அதிகாரி என்ன செய்தார்?", opts: ["கப்பலை நிறுத்தினார்", "ஆவணங்களை சோதனை செய்தார்", "தமிழர்களை கைது செய்தார்", "கப்பலை கைப்பற்றினார்"], ans: 1, exp: "ஜப்பான் அதிகாரி கப்பலோடர்களின் ஆவணங்களை சோதனை செய்தார்." },
+              { q: "ப.சிங்காரம் எந்த நாட்டில் வேலை செய்தார்?", opts: ["மலேசியா", "சிங்கப்பூர்", "இந்தோனேசியா", "பர்மா"], ans: 2, exp: "ப.சிங்காரம் இந்தோனேசியாவில் வேலை செய்தார்." },
+              { q: "ப.சிங்காரம் எந்த பத்திரிகையில் பணிபுரிந்தார்?", opts: ["தினமணி", "தினமலர்", "முரசொலி", "இந்து"], ans: 0, exp: "ப.சிங்காரம் 'தினமணி' பத்திரிகையில் பணிபுரிந்தார்." },
+              { q: "'தொங்கான்' என்னும் சொல் எந்த மொழியிலிருந்து வந்தது?", opts: ["தமிழ்", "மலாய் மொழி", "இந்தோனேசிய மொழி", "ஜாவா மொழி"], ans: 1, exp: "'தொங்கான்' என்பது மலாய் மொழியிலிருந்து வந்த சொல்; கப்பல் என்று பொருள்." },
+              { q: "'புயலிலே ஒரு தோணி' கதையில் கதாநாயகன் கப்பல் எந்த இடத்திற்குப் பயணித்தது?", opts: ["மலேசியா", "இந்தோனேசியா – பிலவான்", "சிங்கப்பூர்", "இலங்கை"], ans: 1, exp: "கதாநாயகன் பாண்டியனின் கப்பல் இந்தோனேசியாவிலுள்ள பிலவான் என்னும் இடத்திற்குச் சென்றது." },
+              { q: "ப.சிங்காரம் பிறந்த ஊர் எது?", opts: ["சிவகங்கை", "சிங்கம்புணரி", "மதுரை", "திண்டுக்கல்"], ans: 1, exp: "ப.சிங்காரம் சிவகங்கை மாவட்டம் சிங்கம்புணரியில் பிறந்தார்." },
+            ]
+          },
+          {
+            id: 'sec3',
+            name: 'தமிழ்ச் சொல்வளம்',
+            subtitle: 'தாவர உறுப்புப் பெயர் வகைகள்',
+            icon: '🌿',
+            bg: '#fff3cd',
+            questions: [
+              { q: "நெல், கேழ்வரகு ஆகியவற்றின் அடிப்பகுதிக்கு என்ன பெயர்?", opts: ["தண்டு", "காழ்", "தாள்", "கோல்"], ans: 2, exp: "நெல், கேழ்வரகு ஆகியவற்றின் அடிப்பகுதி 'தாள்' எனப்படும்." },
+              { q: "கீரை, வாழை ஆகியவற்றின் அடிப்பகுதிக்கு என்ன பெயர்?", opts: ["தாள்", "தண்டு", "கோல்", "கழி"], ans: 1, exp: "கீரை, வாழை ஆகியவற்றின் அடிப்பகுதி 'தண்டு' எனப்படும்." },
+              { q: "நெட்டி, மிளகாய்ச் செடி ஆகியவற்றின் அடிப்பகுதிக்கு என்ன பெயர்?", opts: ["தாள்", "தண்டு", "கோல்", "கழி"], ans: 2, exp: "நெட்டி, மிளகாய்ச் செடி ஆகியவற்றின் அடிப்பகுதி 'கோல்' எனப்படும்." },
+              { q: "கரும்பின் அடிப்பகுதிக்கு என்ன பெயர்?", opts: ["தாள்", "தண்டு", "கழி", "கோல்"], ans: 2, exp: "கரும்பின் அடிப்பகுதி 'கழி' எனப்படும்." },
+              { q: "மூங்கில் தாவரத்தின் அடிப்பகுதிக்கு என்ன பெயர்?", opts: ["கழி", "கமை", "கோல்", "தாள்"], ans: 1, exp: "மூங்கில் தாவரத்தின் அடிப்பகுதி 'கமை' எனப்படும்." },
+              { q: "புளி, வேம்பு உள்ளிட்ட மரங்களின் அடிப்பகுதிக்கு என்ன பெயர்?", opts: ["தாள்", "கழி", "அடி", "கோல்"], ans: 2, exp: "புளி, வேம்பு உள்ளிட்ட மரங்களின் அடிப்பகுதி 'அடி' எனப்படும்." },
+              { q: "அடி மரத்திலிருந்து பிரியும் மாபெரும் கிளை என்ன எனப்படுகிறது?", opts: ["கொம்பு", "கவை", "சினை", "போத்து"], ans: 1, exp: "அடி மரத்திலிருந்து பிரியும் மாபெரும் கிளை 'கவை' எனப்படுகிறது." },
+              { q: "கவையில் இருந்து பிரிவது என்ன எனப்படுகிறது?", opts: ["கவை", "கொம்பு (அ) கொப்பு", "சினை", "போத்து"], ans: 1, exp: "கவையில் இருந்து பிரிவது 'கொம்பு' (அ) 'கொப்பு' எனப்படுகிறது." },
+              { q: "கொம்பிலிருந்து பிரிவது என்ன எனப்படுகிறது?", opts: ["சினை", "கவை", "இணுக்கு", "போத்து"], ans: 0, exp: "கொம்பிலிருந்து பிரிவது 'சிறு கிளை' எனப்படுகிறது." },
+              { q: "சோளம், கரும்பு ஆகியவற்றின் இலை எப்படி அழைக்கப்படுகிறது?", opts: ["தோகை", "இலை", "சரகு", "சண்டு"], ans: 0, exp: "சோளம், கரும்பு ஆகியவற்றின் இலை 'தோகை' எனப்படுகிறது." },
+              { q: "தென்னை, பனை ஆகியவற்றின் இலை என்ன எனப்படுகிறது?", opts: ["தோகை", "ஓலை", "இலை", "சரகு"], ans: 1, exp: "தென்னை, பனை ஆகியவற்றின் இலை 'ஓலை' எனப்படுகிறது." },
+              { q: "காய்ந்த தாள், தோகையைக் குறிப்பது என்னென்று அழைக்கப்படுகிறது?", opts: ["சரகு மற்றும் சருகு", "சண்டு மற்றும் சருகு", "தோகை மற்றும் இலை", "ஓலை மற்றும் தாள்"], ans: 1, exp: "காய்ந்த தாளை 'சண்டு' என்றும், காய்ந்த இலையை 'சருகு' என்றும் அழைக்கப்படுவதை பாவாணர் எடுத்துக்காட்டினார்." },
+              { q: "நெல், கத்தரி முதலியவற்றின் இளநிலை என்னவெனப்படும்?", opts: ["நாற்று", "கன்று", "மடல்", "வடல்"], ans: 0, exp: "நெல், கத்தரி முதலியவற்றின் இளநிலை 'நாற்று' எனவும் வழங்கப்படுகின்றன." },
+              { q: "மா, புளி, வாழை முதலியவற்றின் இளநிலை என்னவெனப்படும்?", opts: ["நாற்று", "கன்று", "மடல்", "வடல்"], ans: 1, exp: "மா, புளி, வாழை முதலியவற்றின் இளநிலை 'கன்று' எனவும் வழங்கப்படுகின்றன." },
+              { q: "'பிள்ளை' என்பது எதன் இளநிலையை குறிக்கிறது?", opts: ["தென்னை", "மா", "வாழை", "ஆல்"], ans: 0, exp: "'பிள்ளை' என்பது தென்னையின் இளநிலையைக் குறிக்கிறது." },
+              { q: "பனையின் இளநிலை என்னவெனப்படும்?", opts: ["நாற்று", "கன்று", "மடல் அல்லது வடல்", "பிள்ளை"], ans: 2, exp: "பனையின் இளநிலை 'மடல்' அல்லது 'வடல்' என வழங்கப்படுகிறது." },
+              { q: "வேர்க்கடலை, கொண்டைக்கடலை ஆகியவற்றை மணி என்னும் பெயர் குறிக்கும் போது என்ன சொல் பயன்படுகிறது?", opts: ["கூலம்", "விதை", "கடலை", "கழ்"], ans: 2, exp: "வேர்க்கடலை, கொண்டைக்கடலை ஆகியவற்றை குறிக்கும் மணிப்பெயர் 'கடலை' ஆகும்." },
+              { q: "கத்தரி, மிளகாயின் மணிப்பெயர் என்ன?", opts: ["கூலம்", "கடலை", "விதை", "காழ்"], ans: 2, exp: "கத்தரி, மிளகாயின் மணிப்பெயர் 'விதை' ஆகும்." },
+              { q: "மா, பனையின் மணி குறிக்கும் சொல் என்ன?", opts: ["கூலம்", "கொட்டை", "கடலை", "விதை"], ans: 1, exp: "மா, பனையின் மணி குறிக்கும் சொல் 'கொட்டை' ஆகும்." },
+              { q: "அவரை, துவரையின் மணிப்பெயர் என்ன?", opts: ["கடலை", "விதை", "முத்திரை", "கூலம்"], ans: 2, exp: "அவரை, துவரையின் மணிப்பெயர் 'முத்திரை' ஆகும்." },
+              { q: "'அவரைக் கொத்து' என்னும் குலைப்பெயர் வகை எதில் அடங்கும்?", opts: ["அடிப்பெயர் வகை", "குலைப்பெயர் வகை", "மணிப்பெயர் வகை", "இலைப்பெயர் வகை"], ans: 1, exp: "'அவரைக் கொத்து' என்பது குலைப்பெயர் வகையில் அடங்கும்." },
+              { q: "வாழையின் குலைப்பெயர் என்ன?", opts: ["கொத்து", "தாறு", "கதிர்", "குலை"], ans: 1, exp: "வாழையின் குலைப்பெயர் 'தாறு' ஆகும்." },
+              { q: "கேழ்வரகின் குலைப்பெயர் என்ன?", opts: ["தாறு", "கதிர்", "கொத்து", "குலை"], ans: 1, exp: "கேழ்வரகின் குலைப்பெயர் 'கதிர்' ஆகும்." },
+              { q: "முந்திரி, திராட்சை ஆகியவற்றின் குலைப்பெயர் என்ன?", opts: ["கொத்து", "தாறு", "குலை", "கதிர்"], ans: 2, exp: "முந்திரி, திராட்சை ஆகியவற்றின் குலைப்பெயர் 'குலை' ஆகும்." },
+              { q: "மொட்டை, கரும்பின் குலைப்பெயர் என்ன?", opts: ["குலை", "கதிர்", "தொங்கை", "கொத்து"], ans: 2, exp: "மொட்டை, கரும்பு ஆகியவற்றின் குலைப்பெயர் 'தொங்கை' ஆகும்." },
+              { q: "மிக மெல்லிய பழத்தோலுக்கு என்ன பெயர்?", opts: ["தோல்", "தொலி", "ஓடு", "மட்டை"], ans: 1, exp: "மிக மெல்லிய பழத்தோலுக்கு 'தொலி' என்று பெயர்." },
+              { q: "திண்ணமான (கனமான) பழத்தோலுக்கு என்ன பெயர்?", opts: ["தொலி", "தோல்", "ஓடு", "மட்டை"], ans: 1, exp: "திண்ணமான பழத்தோலுக்கு 'தோல்' என்று பெயர்." },
+              { q: "வன்மையான (கடினமான) பழத்தோலுக்கு என்ன பெயர்?", opts: ["தொலி", "தோல்", "ஓடு", "மட்டை"], ans: 2, exp: "வன்மையான பழத்தோலுக்கு 'ஓடு' என்று பெயர்." },
+              { q: "முழுச்சுரையின் ஓட்டிற்கு என்ன பெயர்?", opts: ["தோல்", "ஓடு", "குடுக்கை", "மட்டை"], ans: 2, exp: "முழுச்சுரையின் ஓட்டிற்கு 'குடுக்கை' என்று பெயர்." },
+              { q: "தேங்காய் நெற்றின் மேற்பகுதிக்கு என்ன பெயர்?", opts: ["ஓடு", "குடுக்கை", "மட்டை", "தோல்"], ans: 2, exp: "தேங்காய் நெற்றின் மேற்பகுதி அதாவது தேங்காய் நாரை 'மட்டை' என்று அழைப்பர்." },
+              { q: "அவரை, உளுந்து ஆகியவற்றின் மணிப்பெயர் என்ன?", opts: ["கூலம்", "பயிறு", "கடலை", "காழ்"], ans: 1, exp: "அவரை, உளுந்து ஆகியவற்றின் மணிப்பெயர் 'பயிறு' ஆகும்." },
+              { q: "புளி, கொஞ்சிரை ஆகியவற்றின் மணிப்பெயர் என்ன?", opts: ["கூலம்", "முத்து", "காழ்", "கொட்டை"], ans: 2, exp: "புளி, கொஞ்சிரை ஆகியவற்றின் மணிப்பெயர் 'காழ்' ஆகும்." },
+              { q: "வேம்பு, ஆமணக்கு ஆகியவற்றின் மணிப்பெயர் என்ன?", opts: ["கூலம்", "முத்து", "காழ்", "கொட்டை"], ans: 1, exp: "வேம்பு, ஆமணக்கு ஆகியவற்றின் மணிப்பெயர் 'முத்து' ஆகும்." },
+              { q: "தென்னையின் மணிப்பெயர் என்ன?", opts: ["கொட்டை", "முத்து", "தேங்காய்", "பயிறு"], ans: 2, exp: "தென்னையின் மணிப்பெயர் 'தேங்காய்' ஆகும்." },
+              { q: "'ஆவிரம்பூச்சம்பா, ஆனைக்கொம்பன்சம்பா' – இவை என்ன வகை?", opts: ["நெல் வகைகள்", "கரும்பு வகைகள்", "வாழை வகைகள்", "மிளகாய் வகைகள்"], ans: 0, exp: "இவை சம்பா நெல்வகைகள்; பாவாணர் இத்தகைய பல வகைப் பெயர்கள் தமிழ்ச் சொல்வளத்தை காட்டுவதாக விளக்கினார்." },
+              { q: "பாவாணர் 'தமிழ்ச் சொல்வளம்' என்ற கட்டுரை எந்த நூலில் உள்ளது?", opts: ["நாட்டியவுக் கட்டுரைகள்", "செல்லாயவுக் கட்டுரைகள்", "தமிழ் மொழி வரலாறு", "சொல்வளக் கட்டுரைகள்"], ans: 1, exp: "பாவாணரின் 'செல்லாயவுக் கட்டுரைகள்' என்னும் நூலில் 'தமிழ்ச் சொல்வளம்' என்னும் கட்டுரை உள்ளது." },
+            ]
+          },
+          {
+            id: 'sec4',
+            name: 'இலக்கணம் – சொல்',
+            subtitle: 'தனிமொழி, தொடர்மொழி, பொதுமொழி',
+            icon: '📐',
+            bg: '#e8f0ff',
+            questions: [
+              { q: "'சொல்' என்பதன் வகைகள் யாவை?", opts: ["தனிமொழி, தொடர்மொழி", "தனிமொழி, தொடர்மொழி, பொதுமொழி", "தனிமொழி, இணைமொழி", "பொதுமொழி, சேர்மொழி"], ans: 1, exp: "சொல் – தனிமொழி, தொடர்மொழி, பொதுமொழி என மூன்று வகையாக அமையும்." },
+              { q: "'கண்' என்னும் சொல் ஒரே பொருளில் நிற்பது – இது என்ன வகை?", opts: ["தொடர்மொழி", "பொதுமொழி", "தனிமொழி", "இரட்டைமொழி"], ans: 2, exp: "ஒர் சொல் தனித்து நின்று ஒரே பொருள் தருமாயின் அது தனிமொழி எனப்படும்." },
+              { q: "'கண்ணன் வந்தான்' என்னும் தொடரில் 'கண்ணன்' என்பது என்ன வகை?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "ஒருமொழி"], ans: 1, exp: "இரண்டு அல்லது அதற்கு மேற்பட்ட மொழிகள் தொடர்ந்து வந்து பொருள் தருவது தொடர்மொழி ஆகும்." },
+              { q: "'எட்டு' என்னும் சொல் தனித்து நின்று என்ன பொருளை தரும்?", opts: ["உண்ண", "எண்ணைக் குறிக்கும்", "எண்கிறது என்னும் பொருளை", "எல்+ த எனும் தொடர்மொழியாகி எளிய உண்ண என்று"], ans: 1, exp: "'எட்டு' என்னும் சொல் தனித்து நிற்கும் போது எட்டு என்னும் எண்ணைக் குறிக்கும்." },
+              { q: "'மனல் தர மன' என்னும் தொடரில் 'மன' என்பது என்ன மொழி வகை?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "இரட்டைமொழி"], ans: 2, exp: "'மன' என்னும் சொல் தனிமொழியாகவும் தொடர்மொழியாகவும் உள்ள பொதுமொழி ஆகும்." },
+              { q: "'ஒருமொழி ஒருபொருளின் தேட்டிரமொழிக்கு இருபொருள் கேட்பது ஏற்பன' – இது எந்த நூல் வரிகள்?", opts: ["தொல்காப்பியம்", "நன்னூல் – 259", "திருக்குறள்", "சிலப்பதிகாரம்"], ans: 1, exp: "நன்னூல் – 259 என்னும் நூல்வரிகளில் இவ்வாறு கூறப்பட்டுள்ளது." },
+              { q: "'மலர் வீட்டிற்குச் சென்றாள்' என்னும் தொடரில் 'மலர்' என்பது?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "ஒருமொழி"], ans: 2, exp: "'மலர்' என்னும் சொல் இங்கு தனிமொழியாகவும் தொடர்மொழியாகவும் உள்ளதால் பொதுமொழி." },
+              { q: "சம்பா நெல்வகையில் எத்தனை வகைப் பெயர்கள் உள்ளன என பாவாணர் விளக்கினார்?", opts: ["3", "5", "பல", "10-க்கும் மேல்"], ans: 2, exp: "ஆவரம்பெச்சம்பா, ஆகனகொம்பன் சம்பா போன்ற பல வகைப் பெயர்கள் உள்ளன என விளக்கினார்." },
+              { q: "'நாட்டு வழக்கும் செல்வழக்கும் கொடர்படுவது' என்று கூறியவர் யார்?", opts: ["கண்ணதாசன்", "பாவாணர்", "தொல்காப்பியனார்", "திருவள்ளுவர்"], ans: 1, exp: "'நாட்டு வழக்கும் செல்வழக்கும் கொடர்படுவது' என்று பாவாணர் கூறினார்." },
+              { q: "'வேங்கை' என்னும் சொல் தனித்து நிற்கும்போது என்ன பொருள் தரும்?", opts: ["மரம்", "வேகம்", "புலி", "கடல்"], ans: 0, exp: "'வேங்கை' தனித்து நிற்கும்போது ஒரு மரவகையை குறிக்கும் – இது தனிமொழி." },
+              { q: "'வேங்கை' என்னும் சொல் 'வேம்+கை' எனப் பிரிந்தால் என்ன பொருள் தரும்?", opts: ["குளிர்ந்த கை", "வேகமான கை", "சூடான கை", "வலிமையான கை"], ans: 2, exp: "'வேம்' = சூடு, 'கை' = கை; இணையும்போது 'சூடான கை' என்று பொருள் தரும் – இது தொடர்மொழி." },
+              { q: "'வேங்கை' என்னும் சொல் – தனிமொழி மற்றும் தொடர்மொழி இரண்டாகவும் உள்ளது ஆகவே இது என்ன வகை?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "இரட்டைமொழி"], ans: 2, exp: "'வேங்கை' என்னும் சொல் தனிமொழியாகவும் (மரம்) தொடர்மொழியாகவும் (வேம்+கை = சூடான கை) இருப்பதால் பொதுமொழி." },
+              { q: "'எட்டு' என்னும் சொல் 'எள்+து' என பிரிந்தால் என்ன பொருள்?", opts: ["எட்டு என்னும் எண்", "எள்ளை உண்", "எட்டு திசை", "எட்டு வகை"], ans: 1, exp: "'எள்+து' என்று பிரிந்தால் 'எள்ளை உண்' என்று பொருள் தரும் – தொடர்மொழி." },
+              { q: "'பூ மலர்ந்தது' – இத்தொடரில் 'பூ' என்பது என்ன வகை மொழி?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "இரட்டைமொழி"], ans: 0, exp: "'பூ' என்னும் சொல் தனித்து நின்று ஒரே பொருள் (மலர்) தருவதால் தனிமொழி." },
+              { q: "'மாடு புல் தின்றது' – இத்தொடரில் 'புல்' என்பது என்ன வகை மொழி?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "இரட்டைமொழி"], ans: 0, exp: "'புல்' என்னும் சொல் தனித்து நின்று ஒரே பொருள் (grass) தருவதால் தனிமொழி." },
+              { q: "ஒரு மொழி தனித்து நின்று ஒரே பொருள் தருமாயின் அது என்ன வகை?", opts: ["தொடர்மொழி", "பொதுமொழி", "தனிமொழி", "இரட்டைமொழி"], ans: 2, exp: "ஒரு மொழி தனித்து நின்று ஒரே பொருள் தருமாயின் அது தனிமொழி எனப்படும்." },
+              { q: "இரண்டு அல்லது அதற்கு மேற்பட்ட மொழிகள் தொடர்ந்து வந்து பொருள் தருவது என்னவெனப்படும்?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "இணைமொழி"], ans: 1, exp: "இரண்டு அல்லது அதற்கு மேற்பட்ட மொழிகள் தொடர்ந்து வந்து பொருள் தருவது தொடர்மொழி எனப்படும்." },
+            ]
+          },
+          {
+            id: 'sec5',
+            name: 'இலக்கணம் – தொழிற்பெயர்',
+            subtitle: 'தொழிற்பெயர் & வினையாலணையும் பெயர்',
+            icon: '✏️',
+            bg: '#f0e8ff',
+            questions: [
+              { q: "தொழிற்பெயர் என்பது எதை குறிக்கும்?", opts: ["ஒரு வினையை", "ஒரு வினை அல்லது செயலைக் குறிக்கும் பெயர்", "ஒரு மனிதனை", "ஒரு இடத்தை"], ans: 1, exp: "ஒரு வினை அல்லது செயலைக் குறிக்கும் பெயரை தொழிற்பெயர் என்பர்." },
+              { q: "'கட்டு, உரை, அடி' என்பவை என்ன வகை தொழிற்பெயர்?", opts: ["முதனிலை தொழிற்பெயர்", "முதனிலை திரிந்த தொழிற்பெயர்", "வகை பெற்ற தொழிற்பெயர்", "என்னை தொழிற்பெயர்"], ans: 0, exp: "விகுதி பெறாமல் வினைப்பகுதியே தொழிற்பெயராதல் முதனிலைத் தொழிற்பெயராகும்." },
+              { q: "'கெடுதல்' என்பது 'கெடு' என்னும் முதனிலையிலிருந்து திரிந்து வந்தது. இது என்ன வகை?", opts: ["முதனிலை தொழிற்பெயர்", "முதனிலை திரிந்த தொழிற்பெயர்", "வகை பெற்ற தொழிற்பெயர்", "என்னை தொழிற்பெயர்"], ans: 1, exp: "விகுதி பெறாமல் முதனிலை திரிந்து வரும் தொழிற்பெயர் 'முதனிலை திரிந்த தொழிற்பெயர்' ஆகும்." },
+              { q: "'நடத்தல்', 'வாழ்க்கை' ஆகியவை என்ன வகை தொழிற்பெயர்?", opts: ["முதனிலை தொழிற்பெயர்", "முதனிலை திரிந்த தொழிற்பெயர்", "வகை பெற்ற தொழிற்பெயர்", "என்னை தொழிற்பெயர்"], ans: 2, exp: "வினையடி விகுதிகளுடன் இணைந்து தொழிற்பெயர் ஆவது வகை பெற்ற தொழிற்பெயர்." },
+              { q: "'நடவாமை, கொல்லாமை' ஆகியவை என்ன வகை தொழிற்பெயர்?", opts: ["முதனிலை தொழிற்பெயர்", "எதிர்மறை தொழிற்பெயர்", "வகை பெற்ற தொழிற்பெயர்", "முதனிலை திரிந்த தொழிற்பெயர்"], ans: 1, exp: "எதிர்மறைப் பொருளில் வருவது 'எதிர்மறை தொழிற்பெயர்' ஆகும்." },
+              { q: "'பாடல், படித்தல்' ஆகியவை என்ன வகை தொழிற்பெயர்?", opts: ["முதனிலை தொழிற்பெயர்", "எதிர்மறை தொழிற்பெயர்", "வகை பெற்ற தொழிற்பெயர்", "முதனிலை தரிந்த தொழிற்பெயர்"], ans: 2, exp: "'பாடல், படித்தல்' ஆகியவை வகை பெற்ற தொழிற்பெயர்கள்." },
+              { q: "'வந்தவர் அவர்தான்' என்னும் தொடரில் 'வந்தவர்' என்பது என்ன வகை?", opts: ["தொழிற்பெயர்", "வினையாலணையும் பெயர்", "வினைமுற்று", "பண்புப்பெயர்"], ans: 1, exp: "'வந்தவர்' என்பது வினையாலணையும் பெயர் ஆகும்." },
+              { q: "தொழிற்பெயருக்கும் வினையாலணையும் பெயருக்கும் உள்ள வேறுபாட்டில் – தொழிற்பெயர் என்பது:", opts: ["காலம் காட்டும்", "காலம் காட்டாது", "பாலைக் குறிக்கும்", "இடத்தைக் குறிக்கும்"], ans: 1, exp: "தொழிற்பெயர் காலம் காட்டாது; வினையாலணையும் பெயர் காலம் காட்டும்." },
+              { q: "'பாடியவள், படித்தவர்' ஆகியவை என்ன வகை?", opts: ["தொழிற்பெயர்", "வினையாலணையும் பெயர்", "வினைமுற்று", "பண்புப்பெயர்"], ans: 1, exp: "'பாடியவள், படித்தவர்' ஆகியவை வினையாலணையும் பெயர்கள்." },
+              { q: "'கேட்டவர் மகிழப் பாடிய பாடல் இது' – தொடரில் தொழிற்பெயர் எது?", opts: ["பாடிய", "கேட்டவர்", "பாடல்", "மகிழ"], ans: 2, exp: "'பாடல்' என்பது தொழிற்பெயர்; 'கேட்டவர்' வினையாலணையும் பெயர்; 'பாடிய' வினையெச்சம்." },
+              { q: "'பொறுத்தார் பூமியாள்வார்' – இத்தொடரில் 'பொறுத்தார்' என்பது என்ன வகை?", opts: ["தொழிற்பெயர்", "வினையாலணையும் பெயர்", "வினைமுற்று", "பண்புப்பெயர்"], ans: 1, exp: "'பொறுத்தார்' என்பது வினையாலணையும் பெயர் ஆகும்." },
+              { q: "வகை பெற்ற தொழிற்பெயரை உருவாக்க எந்த விகுதி பயன்படும் – 'நட' என்னும் வினையடிக்கு?", opts: ["ல், தல், ஆல்", "ல், தல், கை, அல்", "மை, ல்", "தல் மட்டும்"], ans: 1, exp: "'நடல், நடத்தல், நடை' என வகை பெற்ற தொழிற்பெயர்கள் உருவாகும்." },
+              { q: "'கெடு' என்னும் வினையிலிருந்து உருவாகும் முதனிலை திரிந்த தொழிற்பெயர் எது?", opts: ["கெடுதல்", "கேடு", "கெடாமை", "கெடல்"], ans: 1, exp: "'கெடு' → 'கேடு' என முதனிலை திரிந்து தொழிற்பெயர் ஆவது முதனிலை திரிந்த தொழிற்பெயர்." },
+              { q: "'சுடு' என்னும் வினையிலிருந்து உருவாகும் முதனிலை திரிந்த தொழிற்பெயர் எது?", opts: ["சுடல்", "சூடு", "சுடுதல்", "சுடாமை"], ans: 1, exp: "'சுடு' → 'சூடு' என முதனிலை திரிந்து தொழிற்பெயர் ஆவது முதனிலை திரிந்த தொழிற்பெயர்." },
+              { q: "வினையாலணையும் பெயர் எத்தனை காலம் காட்டும்?", opts: ["காலம் காட்டாது", "மூன்று காலமும் காட்டும்", "இரண்டு காலம் மட்டும் காட்டும்", "நிகழ்காலம் மட்டும் காட்டும்"], ans: 1, exp: "வினையாலணையும் பெயர் மூன்று காலமும் (இறந்தகாலம், நிகழ்காலம், எதிர்காலம்) காட்டும்." },
+              { q: "தொழிற்பெயர் எத்தனை காலம் காட்டும்?", opts: ["காலம் காட்டாது", "மூன்று காலமும் காட்டும்", "இரண்டு காலம் மட்டும்", "நிகழ்காலம் மட்டும்"], ans: 0, exp: "தொழிற்பெயர் காலம் காட்டாது – இதுவே தொழிற்பெயருக்கும் வினையாலணையும் பெயருக்கும் உள்ள முக்கிய வேறுபாடு." },
+              { q: "வினையாலணையும் பெயர் எந்த இடத்தை மட்டும் குறிக்கும்?", opts: ["உத்தமன் மட்டும்", "படர்க்கை மட்டும்", "மூவிடமும்", "தன்மை மட்டும்"], ans: 1, exp: "வினையாலணையும் பெயர் படர்க்கையை மட்டுமே குறிக்கும்; தன்மை, முன்னிலையை குறிக்காது." },
+              { q: "'நடவாமை' என்னும் சொல் என்ன வகை தொழிற்பெயர்?", opts: ["முதனிலை தொழிற்பெயர்", "முதனிலை திரிந்த தொழிற்பெயர்", "வகை பெற்ற தொழிற்பெயர்", "எதிர்மறை தொழிற்பெயர்"], ans: 3, exp: "எதிர்மறைப் பொருளில் வரும் தொழிற்பெயர் எதிர்மறை தொழிற்பெயர்; 'நடவாமை' இதன் எடுத்துக்காட்டு." },
+              { q: "'உரை' என்னும் சொல் முதனிலைத் தொழிற்பெயர் என்பதற்கான காரணம் என்ன?", opts: ["விகுதி பெற்றுள்ளது", "விகுதி பெறாமல் வினைப்பகுதியே பெயராகிறது", "எதிர்மறை பொருள் தருகிறது", "முதனிலை திரிந்துள்ளது"], ans: 1, exp: "விகுதி பெறாமல் வினைப்பகுதியே (உரை) தொழிற்பெயராதல் முதனிலைத் தொழிற்பெயர் எனப்படும்." },
+            ]
+          },
+          {
+            id: 'sec6',
+            name: 'நூல் & ஆசிரியர்',
+            subtitle: 'நூல் வெளி & ஆசிரியர் குறிப்பு',
+            icon: '🖊️',
+            bg: '#fce8d8',
+            questions: [
+              { q: "உலகில் ஒரு மொழிக்காக உலக மாநாடு நடத்திய முதல் நாடு எது?", opts: ["இந்தியா", "மலேசியா", "சிங்கப்பூர்", "இலங்கை"], ans: 1, exp: "உலகில் ஒரு மொழிக்காக உலக மாநாடு நடத்திய முதல் நாடு மலேசியாவே." },
+              { q: "தமிழ் மொழி கடல்கடந்து முதலில் அச்செறிந்த ஆண்டு எது?", opts: ["1554", "1600", "1750", "1800"], ans: 0, exp: "போர்ச்சுகீஸ் நாட்டின் தலைநகர் லிஸ்பனில், 1554ஆம் ஆண்டில் கார்டிலா என்னும் நூல் தமிழ் மொழியில் அச்செறிந்தது." },
+              { q: "'கார்டிலா' என்னும் நூலின் முழுப்பெயர் என்ன?", opts: ["Carthila de lingoa Tamul e Portugues", "Tamil Grammar", "Tamil Language Book", "Carthila Tamil"], ans: 0, exp: "'கார்டிலா' என்னும் நூலின் முழுப்பெயர் 'Carthila de lingoa Tamul e Portugues' ஆகும்." },
+              { q: "இந்திய மொழிகளிலேயே மேலைநாட்டு எழுத்துருவில் முதலில் அச்செறியப்பட்ட மொழி எது?", opts: ["ஹிந்தி", "தெலுங்கு", "தமிழ்", "சம்ஸ்கிருதம்"], ans: 2, exp: "இந்திய மொழிகளிலேயே மேலைநாட்டு எழுத்துருவில் முதலில் அச்செறியப்பட்டது தமிழ்தான்." },
+              { q: "பாவலரேறு பெருஞ்சித்திரனாரின் 'கனிசாறு' நூல் எந்தத் தொகுதியிலிருந்து இரண்டு தலைப்பில் உள்ள பாடல்கள் பாடமாக இடம்பெற்றுள்ளன?", opts: ["தொகுதி 1", "தொகுதி 2", "தொகுதி 3", "தொகுதி 4"], ans: 0, exp: "பாவலரேறு பெருஞ்சித்திரனாரின் 'கனிசாறு' (தொகுதி 1) தொகுப்பிலிருந்து இரண்டு தலைப்பில் உள்ள பாடல்கள் பாடமாக இடம்பெற்றுள்ளன." },
+              { q: "1949ஆம் ஆண்டு 'கலங்காதிரு மனமே' என்ற பாடலை எழுதி திரைப்படப் பாடலாசிரியரானவர் யார்?", opts: ["பாவலரேறு", "ப.சிங்காரம்", "கண்ணதாசன்", "பாரதி"], ans: 2, exp: "1949ஆம் ஆண்டு 'கலங்காதிரு மனமே' என்ற பாடலை எழுதி திரைப்படப் பாடலாசிரியரானவர் கண்ணதாசன்." },
+              { q: "கண்ணதாசன் தமிழ்நாட்டு அரசின் அரசவைக் கவிஞராக ஆக்கப்பட்டார் என்பது சரியா?", opts: ["சரி", "தவறு", "சில காலம் மட்டும்", "இல்லை"], ans: 0, exp: "கண்ணதாசன் தமிழ்நாட்டு அரசின் அரசவைக் கவிஞராக ஆக்கப்பட்டுச் சிறப்புப்பெற்றுள்ளார்." },
+              { q: "ப.சிங்காரம் தன் செம்பான் எவ்வளவு பணம் மாணவர்களின் கல்வி வளர்ச்சிக்காக வழங்கினார்?", opts: ["7.5 இலட்சம்", "5 இலட்சம்", "10 இலட்சம்", "3 இலட்சம்"], ans: 0, exp: "ப.சிங்காரம் அவருடைய செம்பான் 7.5 இலட்சம் ரூபாயை மாணவர்களின் கல்வி வளர்ச்சிக்காக வழங்கினார்." },
+              { q: "பாவாணர் எந்த மொழியில் ஆர்வம் கொண்டவர் என்று சிறப்பித்துக் கூறப்படுகிறது?", opts: ["தெலுங்கு", "தமிழ்", "சம்ஸ்கிருதம்", "இந்தி"], ans: 1, exp: "பாவாணர் தமிழ் மொழியில் ஆழ்ந்த ஆர்வம் கொண்டவர்; 'மொழிஞாயிறு' என்று போற்றப்படுகிறார்." },
+              { q: "பெருஞ்சித்திரனார் 'மொழிஞாயிறு' என்று போற்றப்படும் தேவநேயப் பாவாணரின் 'செல்லாயவுக் கட்டுரைகள்' நூலில் இடம்பெற்ற கட்டுரை எது?", opts: ["தமிழ்ச் சொல்வளம்", "மொழிவளம்", "நாட்டுவழக்கு", "செல்வளம்"], ans: 0, exp: "மொழிஞாயிறு எனறழைக்கப்படும் தேவநேயப் பாவாணரின் 'செல்லாயவுக் கட்டுரைகள்' நூலில் உள்ள 'தமிழ்ச் சொல்வளம்' என்னும் கட்டுரை பாடமாக தரப்பட்டுள்ளது." },
+              { q: "பெருஞ்சித்திரனாரின் 'கனிசாறு' நூல் எத்தனை தொகுதிகள் கொண்டது?", opts: ["ஒரு தொகுதி", "இரண்டு தொகுதிகளுக்கும் மேல்", "மூன்று தொகுதிகள்", "நான்கு தொகுதிகள்"], ans: 1, exp: "பெருஞ்சித்திரனாரின் 'கனிசாறு' பல தொகுதிகள் கொண்ட நூல்; பாடப்பகுதி கனிசாறு தொகுதி-1 இலிருந்து எடுக்கப்பட்டது." },
+              { q: "பாவலரேறு பெருஞ்சித்திரனாரின் 'நூலாசிரியம்' என்னும் நூல் என்ன வகை?", opts: ["கவிதை நூல்", "இலக்கண நூல்", "கட்டுரை நூல்", "புதினம்"], ans: 0, exp: "'நூலாசிரியம்' பெருஞ்சித்திரனாரின் கவிதை நூல்களில் ஒன்று." },
+              { q: "தேவநேயப் பாவாணர் 'மொழிஞாயிறு' என்று போற்றப்படுவதற்கான காரணம் என்ன?", opts: ["கவிதை எழுதியதால்", "தமிழ் மொழி ஆய்வில் சிறந்தமைந்தால்", "பாடகராக இருந்தால்", "நடிகராக இருந்தால்"], ans: 1, exp: "தேவநேயப் பாவாணர் தமிழ் மொழி ஆய்வில் அளப்பரிய பணியாற்றியதால் 'மொழிஞாயிறு' என்று போற்றப்படுகிறார்." },
+              { q: "போர்ச்சுகீஸ் நாட்டின் தலைநகர் எது?", opts: ["மாட்ரிட்", "லிஸ்பன்", "போர்டோ", "பிரஸ்ஸல்ஸ்"], ans: 1, exp: "போர்ச்சுகீஸ் நாட்டின் தலைநகர் லிஸ்பன் (Lisbon) ஆகும்." },
+              { q: "தமிழ் மொழியில் 'கார்டிலா' என்னும் நூல் எந்த ஆண்டு முதல் அச்செறிந்தது?", opts: ["1450", "1554", "1600", "1650"], ans: 1, exp: "1554ஆம் ஆண்டில் போர்ச்சுகீஸ் நாட்டின் லிஸ்பனில் தமிழில் 'கார்டிலா' என்னும் நூல் முதல் அச்செறிந்தது." },
+              { q: "ப.சிங்காரம் தன் சேமிப்பு எவ்வளவு மாணவர்களுக்காக வழங்கினார்?", opts: ["5 இலட்சம்", "7.5 இலட்சம்", "10 இலட்சம்", "15 இலட்சம்"], ans: 1, exp: "ப.சிங்காரம் தன் சேமிப்பான 7.5 இலட்சம் ரூபாயை மாணவர்களின் கல்வி வளர்ச்சிக்காக வழங்கினார்." },
+              { q: "கண்ணதாசன் திரைப்படப் பாடலாசிரியர் ஆனது எந்த ஆண்டில்?", opts: ["1945", "1949", "1955", "1960"], ans: 1, exp: "1949ஆம் ஆண்டில் 'கலங்காதிரு மனமே' என்ற பாடலை எழுதி கண்ணதாசன் திரைப்படப் பாடலாசிரியர் ஆனார்." },
+              { q: "தமிழ் உலக மாநாட்டை முதன்முதலில் நடத்திய நாடு எது?", opts: ["இந்தியா", "மலேசியா", "இலங்கை", "சிங்கப்பூர்"], ans: 1, exp: "உலகில் ஒரு மொழிக்காக உலக மாநாட்டை முதன்முதலில் நடத்திய நாடு மலேசியா." },
+              { q: "பெருஞ்சித்திரனாரின் 'உலகியல் நூறு' என்பது என்ன வகை நூல்?", opts: ["நாடகம்", "கட்டுரை நூல்", "கவிதை நூல்", "புதினம்"], ans: 2, exp: "'உலகியல் நூறு' பெருஞ்சித்திரனாரின் கவிதை நூல்களில் ஒன்று." },
+              { q: "ப.சிங்காரம் 'புயலிலே ஒரு தோணி' என்னும் படைப்பை எழுதியதில் சிறப்பு என்ன?", opts: ["முதல் கடல் கதை", "புலம்பெயர் தமிழர்களைப் பற்றிய முதல் புதினம்", "முதல் யுத்தக் கதை", "முதல் விஞ்ஞான புதினம்"], ans: 1, exp: "'புயலிலே ஒரு தோணி' புலம்பெயர் தமிழர்களைப் பற்றிய முதல் புதினம் என்ற சிறப்பை பெற்றது." },
+              { q: "கண்ணதாசன் அரசவைக் கவிஞர் பட்டம் பெற்றது எந்த அரசிடமிருந்து?", opts: ["இந்திய மத்திய அரசு", "தமிழ்நாடு அரசு", "மலேசிய அரசு", "இலங்கை அரசு"], ans: 1, exp: "கண்ணதாசன் தமிழ்நாட்டு அரசின் அரசவைக் கவிஞராக சிறப்பிக்கப்பட்டார்." },
+            ]
+          },
+          {
+            id: 'sec7',
+            name: 'பொதுத் தமிழ்',
+            subtitle: 'திரன் அறிவோம் வினாக்கள்',
+            icon: '🏆',
+            bg: '#e8f8f0',
+            questions: [
+              { q: "'இகழ்ந்தால் என்மனம் இறந்து விடாது' – இவ்வரி எந்த கவிதையிலிருந்து?", opts: ["அன்னை மொழியே", "காலக்கணிதம்", "புயலிலே ஒரு தோணி", "கலக்கும் காற்று"], ans: 1, exp: "கண்ணதாசனின் 'காலக்கணிதம்' கவிதையிலிருந்து இவ்வரி எடுக்கப்பட்டது." },
+              { q: "'காய்ந்த இலையும் காய்ந்த தோகையும்' நிலத்துக்கு நல்ல உரங்கள். இத்தொடரில் அடிக்கோடிட்ட பகுதி குறிப்பிடுவது –", opts: ["இலையும் சருகும்", "தோகையும் சண்டும்", "தாளும் ஓலையும்", "சருகும் சண்டும்"], ans: 3, exp: "காய்ந்த தாளை 'சண்டு' என்றும், காய்ந்த இலையை 'சருகு' என்றும் அழைப்பர்." },
+              { q: "'என்தமிழ்நா எவ்வாறு எடுத்தே உரைவிரிக்கும்?' என்ற வரியில் 'என்தமிழ்நா' எவ்வாறு பிரிக்கலாம்?", opts: ["என் + தமிழ் + நா", "என்த + மிழ் + நா", "எம் + தமிழ் + நா", "என்தம் + தமிழ் + நா"], ans: 0, exp: "'என்தமிழ்நா' என்பது என் + தமிழ் + நா என்று பிரியும்." },
+              { q: "'கேட்டவர் மகிழப் பாடிய பாடல் இது' – தொடரில் இடம்பெற்றுள்ள தொழிற்பெயரும் வினையாலணையும் பெயரும் முறையே –", opts: ["பாடிய; கேட்டவர்", "பாடல்; பாடிய", "கேட்டவர்; பாடிய", "பாடல்; கேட்டவர்"], ans: 3, exp: "'பாடல்' என்பது தொழிற்பெயர்; 'கேட்டவர்' என்பது வினையாலணையும் பெயர்." },
+              { q: "வேர்க்கடலை, மிளகாய் விதை, மாங்கொட்டை ஆகியவற்றைக் குறிப்பது –", opts: ["குலைப்பெயர் வகை", "மணிப்பெயர் வகை", "கிளைப்பெயர் வகை", "இலைப்பெயர் வகை"], ans: 1, exp: "வேர்க்கடலை, மிளகாய் விதை, மாங்கொட்டை ஆகியவை மணிப்பெயர் வகையில் சேர்கின்றன." },
+              { q: "'நெல், புல் (கம்பு முதலிய தானியங்கள்)' – இவற்றின் மணிப்பெயர் என்ன?", opts: ["கூலம்", "கடலை", "விதை", "கழ்"], ans: 0, exp: "நெல், புல் (கம்பு முதலிய தானியங்கள்) இவற்றின் மணிப்பெயர் 'கூலம்' ஆகும்." },
+              { q: "'பாசம் மிகுத்தேன்; பற்றுதல் மிகுத்தேன்' என்று யார் கூறுகிறார்?", opts: ["பாவலரேறு", "பாரதி", "கண்ணதாசன்", "கம்பர்"], ans: 2, exp: "கண்ணதாசன் 'காலக்கணிதம்' கவிதையில் இவ்வாறு கூறுகிறார்." },
+              { q: "'கன்னிக் குமரிக் கடல்கொண்ட நாட்டினடியில் மன்னி அரசிருந்த மண்ணுலகப் பேரசே!' – இவ்வரிகளில் 'மன்னி' என்பது எதைக் குறிக்கிறது?", opts: ["மன்னன்", "நிலைபெற்று", "மன்னிப்பு", "தமிழ்த் தாய்"], ans: 1, exp: "'மன்னி' என்பது நிலைபெற்று என்று பொருள்." },
+              { q: "தமிழில் சொல்வளம் என்பது எதை உணர்த்தும் என்று பாவாணர் கூறுகிறார்?", opts: ["நாட்டின் வளத்தையும் நாகரிகத்தையும்", "நாட்டின் படைவலிமையையும்", "தனிமனித ஆற்றலையும்", "அரசின் பலத்தையும்"], ans: 0, exp: "சொல்வளம் நிறைந்த மொழியானது அது பயன்படுத்தப்படும் நாட்டின் வளத்தையும் நாகரிகத்தையும் உணர்த்துவது என்று பாவாணர் கூறுகிறார்." },
+              { q: "'மூங்கிலுக்கும் கமை என்று பெயர் உண்டு' – இவ்வாறு அழைக்கப்படும் பகுதி எது?", opts: ["அடிப்பகுதி", "கிளைப்பகுதி", "இலைப்பகுதி", "மணிப்பகுதி"], ans: 0, exp: "மூங்கிலின் அடிப்பகுதி 'கமை' என்று அழைக்கப்படுகிறது." },
+              { q: "'வண்டாப் பெழுந்து மலர்களில் அமர்வேன்' – இவ்வரி எந்தக் கவிதையில் உள்ளது?", opts: ["அன்னை மொழியே", "காலக்கணிதம்", "புயலிலே ஒரு தோணி", "பாவாணர் பார்வையில்"], ans: 1, exp: "இவ்வரி கண்ணதாசனின் 'காலக்கணிதம்' கவிதையில் உள்ளது." },
+              { q: "கட்டு, சொட்டு, வழிபாடு, கேடு, பாடல் – இவற்றில் முதனிலைத் தொழிற்பெயர் எது?", opts: ["பாடல்", "கட்டு", "வழிபாடு", "கேடு"], ans: 1, exp: "'கட்டு' என்பது விகுதி பெறாத முதனிலைத் தொழிற்பெயர்." },
+              { q: "'மன்னுஞ் சிலம்பே! மணிமே கலைவடிவே!' என்னும் வரியில் 'மன்னும்' என்பதன் பொருள் என்ன?", opts: ["மன்னிக்கும்", "நிலைத்திருக்கும்", "அரசாளும்", "மறைந்திருக்கும்"], ans: 1, exp: "'மன்னும்' என்பது நிலைத்திருக்கும் என்று பொருள்." },
+              { q: "பெருஞ்சித்திரனார் இயற்றிய 'அன்னை மொழியே' கவிதை எந்த நூலிலிருந்து எடுக்கப்பட்டது?", opts: ["உலகியல் நூறு", "கனிசாறு – தொகுதி 1", "பாவியக்கொத்து", "மகபுகுவஞ்சி"], ans: 1, exp: "'அன்னை மொழியே' கவிதை பெருஞ்சித்திரனாரின் 'கனிசாறு – தொகுதி 1' என்னும் நூலிலிருந்து எடுக்கப்பட்டது." },
+              { q: "'அடி' என்னும் அடிப்பெயர் எந்த மரங்களுக்கு பயன்படும்?", opts: ["நெல், கேழ்வரகு", "கீரை, வாழை", "புளி, வேம்பு", "கரும்பு, மூங்கில்"], ans: 2, exp: "புளி, வேம்பு போன்ற மரங்களின் அடிப்பகுதிக்கு 'அடி' என்று பெயர்." },
+              { q: "சோளம், கரும்பின் இலைக்கு என்ன பெயர்?", opts: ["ஓலை", "சருகு", "தோகை", "சண்டு"], ans: 2, exp: "சோளம், கரும்பு ஆகியவற்றின் இலை 'தோகை' எனப்படுகிறது." },
+              { q: "மூன்று வகை சொல்லில் எந்தச் சொல் தனிமொழியாகவும் தொடர்மொழியாகவும் உள்ளது?", opts: ["தனிமொழி", "தொடர்மொழி", "பொதுமொழி", "இணைமொழி"], ans: 2, exp: "தனிமொழியாகவும் தொடர்மொழியாகவும் அமையும் சொல் பொதுமொழி எனப்படும்." },
+              { q: "கண்ணதாசன் எந்த மாவட்டத்தில் பிறந்தார்?", opts: ["மதுரை", "சிவகங்கை", "திருவனந்தபுரம்", "கோவை"], ans: 1, exp: "கண்ணதாசன் சிவகங்கை மாவட்டத்திலுள்ள சிறுகூடல்பட்டியில் பிறந்தார்." },
+              { q: "நன்னூல் என்னும் இலக்கண நூலில் சொல் வகை பற்றிய நூற்பா எந்த எண்?", opts: ["நூற்பா 100", "நூற்பா 259", "நூற்பா 300", "நூற்பா 50"], ans: 1, exp: "நன்னூல் 259 என்னும் நூற்பா சொல் வகைகளைப் பற்றி விளக்குகிறது." },
+              { q: "'கொம்பு' அல்லது 'கொப்பு' என்னும் கிளைப்பெயர் எந்த நிலையில் உள்ளது?", opts: ["அடிக்கு அடுத்த நிலை", "கவைக்கு அடுத்த நிலை", "சினைக்கு அடுத்த நிலை", "போத்துக்கு அடுத்த நிலை"], ans: 1, exp: "கவையில் இருந்து பிரிவது 'கொம்பு' அல்லது 'கொப்பு' எனப்படுகிறது – கவைக்கு அடுத்த நிலை." },
+              { q: "'சினை' என்னும் கிளைப்பெயர் எந்த நிலையில் உள்ளது?", opts: ["கவைக்கு அடுத்தது", "கொம்புக்கு அடுத்தது", "சிறு கிளைக்கு அடுத்தது", "போத்துக்கு அடுத்தது"], ans: 2, exp: "கொம்பிலிருந்து பிரியும் சிறு கிளைக்கு அடுத்து 'சினை' வருகிறது." },
+              { q: "ப.சிங்காரம் எழுதிய 'புயலிலே ஒரு தோணி' கதையின் சிறப்பு என்ன?", opts: ["முதல் கடல் கதை", "முதல் புலம்பெயர் தமிழர் கதை", "முதல் யுத்தக் கதை", "முதல் விஞ்ஞான கதை"], ans: 1, exp: "புலம்பெயர்ந்த தமிழர்களைப் பற்றிய முதல் புதினம் 'புயலிலே ஒரு தோணி' ஆகும்." },
+            ]
+          }
+        ]
+      }
+      // Future chapters can be added here as objects in this array
+    ];
+
+    // ============================================================
+    //  STORAGE HELPERS
+    // ============================================================
+    const Store = {
+      KEY_USERS:  'ttq_users',
+      KEY_CUR:    'ttq_cur_user',
+      KEY_ANS:    'ttq_answers',
+      KEY_T_PWD:  'ttq_teacher_pwd',
+      KEY_T_IN:   'ttq_teacher_in',
+
+      getUsers()        { return JSON.parse(localStorage.getItem(this.KEY_USERS) || '[]'); },
+      saveUsers(u)      { localStorage.setItem(this.KEY_USERS, JSON.stringify(u)); },
+      getCurrentId()    { return localStorage.getItem(this.KEY_CUR); },
+      setCurrent(id)    { localStorage.setItem(this.KEY_CUR, id); },
+      clearCurrent()    { localStorage.removeItem(this.KEY_CUR); },
+      getAllAnswers()    { return JSON.parse(localStorage.getItem(this.KEY_ANS) || '{}'); },
+      saveAllAnswers(a) { localStorage.setItem(this.KEY_ANS, JSON.stringify(a)); },
+      getTeacherPwd()   { return localStorage.getItem(this.KEY_T_PWD) || '1234'; },
+      setTeacherPwd(p)  { localStorage.setItem(this.KEY_T_PWD, p); },
+      isTeacherIn()     { return localStorage.getItem(this.KEY_T_IN) === '1'; },
+      setTeacherIn(v)   { v ? localStorage.setItem(this.KEY_T_IN,'1') : localStorage.removeItem(this.KEY_T_IN); },
+
+      getUserAnswers(uid)  { return this.getAllAnswers()[uid] || {}; },
+      recordAnswer(uid, chapterId, secId, qIdx, chosen, isCorrect) {
+        const all = this.getAllAnswers();
+        if (!all[uid])                    all[uid] = {};
+        if (!all[uid][chapterId])         all[uid][chapterId] = {};
+        if (!all[uid][chapterId][secId])  all[uid][chapterId][secId] = {};
+        all[uid][chapterId][secId][qIdx] = { chosen, correct: isCorrect };
+        this.saveAllAnswers(all);
+      },
+      clearChapter(uid, chapterId) {
+        const all = this.getAllAnswers();
+        if (all[uid]) delete all[uid][chapterId];
+        this.saveAllAnswers(all);
+      },
+      chapterStats(uid, chapterId) {
+        const ch = CHAPTERS.find(c => c.id === chapterId);
+        if (!ch) return { answered: 0, correct: 0, total: 0 };
+        let total = 0, answered = 0, correct = 0;
+        const ua = this.getUserAnswers(uid);
+        ch.sections.forEach(sec => {
+          total += sec.questions.length;
+          if (ua[chapterId] && ua[chapterId][sec.id]) {
+            Object.values(ua[chapterId][sec.id]).forEach(a => {
+              answered++; if (a.correct) correct++;
+            });
+          }
+        });
+        return { total, answered, correct };
+      },
+      totalStats(uid) {
+        let total = 0, answered = 0, correct = 0;
+        CHAPTERS.forEach(ch => {
+          const s = this.chapterStats(uid, ch.id);
+          total += s.total; answered += s.answered; correct += s.correct;
+        });
+        return { total, answered, correct };
+      }
+    };
+
+    // ============================================================
+    //  APP CONTROLLER
+    // ============================================================
+    const App = {
+      currentUser:    null,   // { id, name }
+      currentRole:    null,   // 'student' | 'teacher'
+      currentChapter: null,
+      quizStats: { total: 0, answered: 0, correct: 0, wrong: 0 },
+
+      // ─── Screens ─────────────────────────────────────────────
+      showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0, 0);
+      },
+
+      // ─── Landing ─────────────────────────────────────────────
+      goStudentLogin() {
+        this.renderUserScreen();
+      },
+
+      goTeacherLogin() {
+        document.getElementById('teacherPwd').value = '';
+        document.getElementById('teacherPwdErr').style.display = 'none';
+        this.showScreen('screen-teacher-login');
+        setTimeout(() => document.getElementById('teacherPwd').focus(), 150);
+      },
+
+      verifyTeacher() {
+        const input  = document.getElementById('teacherPwd').value;
+        const errEl  = document.getElementById('teacherPwdErr');
+        if (input === Store.getTeacherPwd()) {
+          errEl.style.display = 'none';
+          document.getElementById('teacherPwd').value = '';
+          this.currentRole = 'teacher';
+          Store.setTeacherIn(true);
+          this.renderTeacherDashboard();
+        } else {
+          errEl.style.display = 'block';
+          document.getElementById('teacherPwd').select();
+        }
+      },
+
+      teacherLogout() {
+        this.currentRole = null;
+        Store.setTeacherIn(false);
+        this.showScreen('screen-landing');
+      },
+
+      // ─── Teacher Dashboard ───────────────────────────────────
+      renderTeacherDashboard() {
+        const users = Store.getUsers();
+        const list  = document.getElementById('teacherStudentList');
+        list.innerHTML = '';
+
+        if (users.length === 0) {
+          list.innerHTML = `<div class="td-no-students">
+            மாணவர்கள் இல்லை.<br>மேலே உள்ள "+ மாணவர் சேர்" என்று அழுத்தவும்.
+          </div>`;
+          this.showScreen('screen-teacher-dashboard');
+          return;
+        }
+
+        users.forEach(u => {
+          const ts   = Store.totalStats(u.id);
+          const card = document.createElement('div');
+          card.className = 'td-student-card';
+
+          const chapRows = CHAPTERS.map(ch => {
+            const s = Store.chapterStats(u.id, ch.id);
+            const hasData  = s.answered > 0;
+            const scoreTxt = hasData ? `${s.correct}/${s.total}` : '—';
+            const scCls    = !hasData ? 'nil' : s.answered < s.total ? 'in-prog' : 'done';
+            const resetBtn = hasData
+              ? `<button class="td-reset-btn" onclick="App.teacherResetStudent('${u.id}','${ch.id}')">மீட்டமை</button>`
+              : `<span class="td-reset-disabled">மீட்டமை</span>`;
+            return `<div class="td-ch-row">
+              <span class="td-ch-name">${ch.icon} ${ch.title} – ${ch.subtitle}</span>
+              <span class="td-score ${scCls}">${scoreTxt}</span>
+              ${resetBtn}
+            </div>`;
+          }).join('');
+
+          card.innerHTML = `
+            <div class="td-student-header">
+              <div class="avatar" style="width:42px;height:42px;font-size:16px;flex-shrink:0;">
+                ${u.name.slice(0,2).toUpperCase()}
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:15px;">${u.name}</div>
+                <div style="font-size:12px;color:var(--muted);">மொத்தம்: ${ts.correct}/${ts.total}</div>
+              </div>
+            </div>
+            <div class="td-ch-list">${chapRows}</div>`;
+          list.appendChild(card);
+        });
+
+        this.showScreen('screen-teacher-dashboard');
+      },
+
+      teacherResetStudent(uid, chapterId) {
+        const users = Store.getUsers();
+        const user  = users.find(u => u.id === uid);
+        const ch    = CHAPTERS.find(c => c.id === chapterId);
+        if (!confirm(`"${user.name}" மாணவரின் "${ch.title} – ${ch.subtitle}" தேர்வை மீட்டமைக்கணுமா?\nமாணவர் மீண்டும் தேர்வு எழுதலாம்.`)) return;
+        Store.clearChapter(uid, chapterId);
+        this.renderTeacherDashboard();
+      },
+
+      showChangePwdModal() {
+        document.getElementById('newPwd1').value = '';
+        document.getElementById('newPwd2').value = '';
+        document.getElementById('pwdChangeErr').style.display = 'none';
+        document.getElementById('changePwdModal').classList.add('show');
+        setTimeout(() => document.getElementById('newPwd1').focus(), 100);
+      },
+
+      saveNewPwd() {
+        const p1    = document.getElementById('newPwd1').value.trim();
+        const p2    = document.getElementById('newPwd2').value.trim();
+        const errEl = document.getElementById('pwdChangeErr');
+        if (!p1) { errEl.textContent = 'கடவுச்சொல் உள்ளிடவும்.'; errEl.style.display='block'; return; }
+        if (p1 !== p2) { errEl.textContent = 'இரண்டும் பொருந்தவில்லை.'; errEl.style.display='block'; return; }
+        Store.setTeacherPwd(p1);
+        this.closeModal();
+        alert('கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது!');
+      },
+
+      // ─── Student / User Screen ───────────────────────────────
+      renderUserScreen() {
+        const grid  = document.getElementById('userGrid');
+        const users = Store.getUsers();
+        grid.innerHTML = '';
+
+        users.forEach(u => {
+          const stats = Store.totalStats(u.id);
+          const div   = document.createElement('div');
+          div.className = 'user-card';
+          div.onclick   = () => this.selectUser(u.id);
+          div.innerHTML = `
+            <div class="avatar">${u.name.slice(0,2).toUpperCase()}</div>
+            <div class="name">${u.name}</div>
+            <div class="uscore">மதிப்பெண்: <span>${stats.correct}/${stats.total}</span></div>`;
+          grid.appendChild(div);
+        });
+
+        const add = document.createElement('div');
+        add.className = 'user-card user-card-add';
+        add.onclick   = () => this.showAddUserModal();
+        add.innerHTML = `<div class="plus">+</div><div class="lbl">புதிய மாணவர்</div>`;
+        grid.appendChild(add);
+
+        this.showScreen('screen-users');
+      },
+
+      selectUser(uid) {
+        const users = Store.getUsers();
+        this.currentUser = users.find(u => u.id === uid);
+        this.currentRole = 'student';
+        Store.setCurrent(uid);
+        this.renderHomeScreen();
+      },
+
+      switchUser() {
+        this.currentUser = null;
+        this.currentRole = null;
+        Store.clearCurrent();
+        this.showScreen('screen-landing');
+      },
+
+      showAddUserModal() {
+        document.getElementById('newUserName').value = '';
+        document.getElementById('addUserModal').classList.add('show');
+        setTimeout(() => document.getElementById('newUserName').focus(), 100);
+      },
+
+      closeModal() {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+      },
+
+      addUser() {
+        const name = document.getElementById('newUserName').value.trim();
+        if (!name) { document.getElementById('newUserName').focus(); return; }
+        const users = Store.getUsers();
+        const id    = 'u_' + Date.now();
+        users.push({ id, name });
+        Store.saveUsers(users);
+        this.closeModal();
+        if (this.currentRole === 'teacher') {
+          this.renderTeacherDashboard();
+        } else {
+          this.selectUser(id);
+        }
+      },
+
+      // ─── Home Screen ─────────────────────────────────────────
+      renderHomeScreen() {
+        const u = this.currentUser;
+        document.getElementById('welcomeAvatar').textContent = u.name.slice(0,2).toUpperCase();
+        document.getElementById('welcomeName').textContent   = u.name + ' – வணக்கம்!';
+
+        const ts  = Store.totalStats(u.id);
+        const pct = ts.total ? Math.round((ts.correct / ts.total) * 100) : 0;
+        document.getElementById('welcomeStats').textContent =
+          `மொத்த மதிப்பெண்: ${ts.correct}/${ts.total} (${pct}%)`;
+
+        const grid = document.getElementById('chapterGrid');
+        grid.innerHTML = '';
+        CHAPTERS.forEach(ch => {
+          const stats  = Store.chapterStats(u.id, ch.id);
+          const pctCh  = stats.total ? Math.round((stats.answered / stats.total) * 100) : 0;
+          let statusClass, statusLabel;
+          if (stats.answered === 0)              { statusClass = 'not-started'; statusLabel = 'தொடங்கவில்லை'; }
+          else if (stats.answered < stats.total) { statusClass = 'in-progress'; statusLabel = 'தொடர்கிறது...'; }
+          else                                   { statusClass = 'completed';   statusLabel = '✓ முடிந்தது'; }
+
+          const card = document.createElement('div');
+          card.className = 'chapter-card';
+          card.onclick   = () => this.startChapter(ch.id);
+          card.innerHTML = `
+            <div class="ch-icon">${ch.icon}</div>
+            <div class="ch-num">இயல் ${ch.number}</div>
+            <div class="ch-title">${ch.title}</div>
+            <div class="ch-sub">${ch.subtitle}</div>
+            <div class="ch-prog">
+              <div class="ch-prog-bar"><div class="ch-prog-fill" style="width:${pctCh}%"></div></div>
+              <div class="ch-prog-txt">
+                <span>${stats.answered}/${stats.total} வினாக்கள்</span>
+                <span class="sc">${stats.correct} சரி</span>
+              </div>
+            </div>
+            <span class="ch-status ${statusClass}">${statusLabel}</span>`;
+          grid.appendChild(card);
+        });
+
+        this.showScreen('screen-home');
+      },
+
+      goHome() {
+        if (this.currentRole === 'teacher')       this.renderTeacherDashboard();
+        else if (this.currentRole === 'student')  this.renderHomeScreen();
+        else                                       this.showScreen('screen-landing');
+      },
+
+      // ─── Quiz Screen ─────────────────────────────────────────
+      startChapter(chapterId) {
+        this.currentChapter = CHAPTERS.find(c => c.id === chapterId);
+        document.getElementById('quizChapterTitle').textContent =
+          this.currentChapter.title + ' – ' + this.currentChapter.subtitle;
+        this.buildQuiz();
+        this.showScreen('screen-quiz');
+      },
+
+      buildQuiz() {
+        const ch    = this.currentChapter;
+        const uid   = this.currentUser.id;
+        const ua    = Store.getUserAnswers(uid);
+        const saved = ua[ch.id] || {};
+
+        this.quizStats = { total: 0, answered: 0, correct: 0, wrong: 0 };
+
+        const navEl    = document.getElementById('sectionNav');
+        const panelsEl = document.getElementById('sectionPanels');
+        navEl.innerHTML    = '';
+        panelsEl.innerHTML = '';
+        document.getElementById('finalResult').classList.remove('show');
+
+        const LABELS = ['அ)', 'ஆ)', 'இ)', 'ஈ)'];
+
+        ch.sections.forEach((sec, si) => {
+          this.quizStats.total += sec.questions.length;
+
+          const tab = document.createElement('button');
+          tab.className = 'section-tab' + (si === 0 ? ' active' : '');
+          tab.id        = `tab_${sec.id}`;
+          tab.textContent = sec.name;
+          tab.onclick   = () => this.showSection(sec.id);
+          navEl.appendChild(tab);
+
+          const panel = document.createElement('div');
+          panel.className = 'section-panel' + (si === 0 ? ' active' : '');
+          panel.id        = `panel_${sec.id}`;
+
+          const hdr = document.createElement('div');
+          hdr.className = 'section-header';
+          hdr.innerHTML = `
+            <div class="icon" style="background:${sec.bg};">${sec.icon}</div>
+            <h2>${sec.subtitle}</h2>
+            <span class="count" id="cnt_${sec.id}">0/${sec.questions.length}</span>`;
+          panel.appendChild(hdr);
+
+          const grid = document.createElement('div');
+
+          sec.questions.forEach((q, qi) => {
+            const key      = String(qi);
+            const savedAns = saved[sec.id] ? saved[sec.id][key] : null;
+
+            if (savedAns) {
+              this.quizStats.answered++;
+              if (savedAns.correct) this.quizStats.correct++;
+              else                  this.quizStats.wrong++;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'q-card' +
+              (savedAns ? (savedAns.correct ? ' answered-correct' : ' answered-wrong') : '');
+            card.id = `card_${sec.id}_${qi}`;
+
+            const optsHTML = q.opts.map((opt, oi) => {
+              let cls = '';
+              if (savedAns) {
+                if (oi === q.ans)                            cls = ' correct';
+                else if (oi === savedAns.chosen && !savedAns.correct) cls = ' wrong';
+              }
+              return `<button class="opt-btn${cls}" id="opt_${sec.id}_${qi}_${oi}"
+                ${savedAns ? 'disabled' : ''}
+                onclick="App.answer('${ch.id}','${sec.id}',${qi},${oi},${q.ans})">
+                <span class="opt-label">${LABELS[oi]}</span><span>${opt}</span>
+              </button>`;
+            }).join('');
+
+            const resShow = savedAns ? ' show' : '';
+            const resCls  = savedAns ? (savedAns.correct ? ' correct-lbl' : ' wrong-lbl') : '';
+            const resTxt  = savedAns ? (savedAns.correct ? '✔ சரி' : '✘ தவறு') : '';
+            const expShow = savedAns ? ' show' : '';
+
+            card.innerHTML = `
+              <div class="q-header">
+                <div class="q-num">${qi + 1}</div>
+                <div class="q-text">${q.q}</div>
+                <span class="q-result${resShow}${resCls}" id="res_${sec.id}_${qi}">${resTxt}</span>
+              </div>
+              <div class="q-options">${optsHTML}</div>
+              <div class="explanation${expShow}" id="exp_${sec.id}_${qi}">
+                <strong>✅ விளக்கம்:</strong> ${q.exp}
+              </div>`;
+            grid.appendChild(card);
+          });
+
+          panel.appendChild(grid);
+          panelsEl.appendChild(panel);
+        });
+
+        ch.sections.forEach(sec => {
+          const cnt = Object.keys(saved[sec.id] || {}).length;
+          const el  = document.getElementById(`cnt_${sec.id}`);
+          if (el) el.textContent = `${cnt}/${sec.questions.length}`;
+        });
+
+        this.updateScoreboard();
+        this.checkCompletion();
+      },
+
+      showSection(secId) {
+        document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`panel_${secId}`).classList.add('active');
+        document.getElementById(`tab_${secId}`).classList.add('active');
+        window.scrollTo(0, 0);
+      },
+
+      answer(chapterId, secId, qi, chosen, correctAns) {
+        const ch        = this.currentChapter;
+        const sec       = ch.sections.find(s => s.id === secId);
+        const q         = sec.questions[qi];
+        const isCorrect = chosen === correctAns;
+
+        q.opts.forEach((_, oi) => {
+          const btn = document.getElementById(`opt_${secId}_${qi}_${oi}`);
+          btn.disabled = true;
+          if (oi === correctAns)                btn.classList.add('correct');
+          else if (oi === chosen && !isCorrect) btn.classList.add('wrong');
+        });
+
+        const resEl = document.getElementById(`res_${secId}_${qi}`);
+        resEl.textContent = isCorrect ? '✔ சரி' : '✘ தவறு';
+        resEl.className   = `q-result show ${isCorrect ? 'correct-lbl' : 'wrong-lbl'}`;
+        document.getElementById(`card_${secId}_${qi}`).className =
+          `q-card ${isCorrect ? 'answered-correct' : 'answered-wrong'}`;
+        document.getElementById(`exp_${secId}_${qi}`).classList.add('show');
+
+        try {
+          new Audio(isCorrect
+            ? 'https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3'
+            : 'https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg'
+          ).play();
+        } catch(e) {}
+
+        Store.recordAnswer(this.currentUser.id, chapterId, secId, String(qi), chosen, isCorrect);
+
+        this.quizStats.answered++;
+        if (isCorrect) this.quizStats.correct++;
+        else           this.quizStats.wrong++;
+
+        const cnt = Object.keys((Store.getUserAnswers(this.currentUser.id)[chapterId]||{})[secId]||{}).length;
+        document.getElementById(`cnt_${secId}`).textContent = `${cnt}/${sec.questions.length}`;
+
+        this.updateScoreboard();
+        this.checkCompletion();
+      },
+
+      updateScoreboard() {
+        const { total, answered, correct, wrong } = this.quizStats;
+        document.getElementById('qScore').textContent   = correct;
+        document.getElementById('qCorrect').textContent = correct;
+        document.getElementById('qWrong').textContent   = wrong;
+        document.getElementById('qAttempt').textContent = answered;
+        const pct = total ? Math.round((answered / total) * 100) : 0;
+        document.getElementById('qProgress').style.width = pct + '%';
+      },
+
+      checkCompletion() {
+        const { total, answered, correct } = this.quizStats;
+        if (answered < total) return;
+        const fr  = document.getElementById('finalResult');
+        fr.classList.add('show');
+        document.getElementById('finalScore').textContent = `${correct}/${total}`;
+        const pct = Math.round((correct / total) * 100);
+        let msg = pct >= 90 ? '🏆 சிறப்பான செயல்திறன்!'
+                : pct >= 70 ? '👍 நல்ல முயற்சி!'
+                : pct >= 50 ? '📖 இன்னும் கொஞ்சம் படிக்கவும்!'
+                :             '📚 மேலும் கடினமாக படிக்க வேண்டும்';
+        document.getElementById('finalMsg').textContent = msg;
+        fr.scrollIntoView({ behavior: 'smooth' });
+      },
+
+      // ─── Scores toggle (inline in teacher dashboard) ──────────
+      toggleScores() {
+        const section = document.getElementById('scoresSection');
+        const btn     = document.getElementById('scoresToggleBtn');
+        const isOpen  = section.style.display !== 'none';
+        if (isOpen) {
+          section.style.display = 'none';
+          btn.textContent = '▼ காட்டு';
+        } else {
+          this.renderScoresTable();
+          section.style.display = 'block';
+          btn.textContent = '▲ மறை';
+          section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      },
+
+      renderScoresTable() {
+        const users = Store.getUsers();
+        const table = document.getElementById('lbTable');
+
+        let hdr = '<tr><th>#</th><th>மாணவர்</th>';
+        CHAPTERS.forEach(ch => { hdr += `<th>${ch.title}</th>`; });
+        hdr += '<th>மொத்தம்</th></tr>';
+
+        const rows = users.map(u => {
+          const chStats      = CHAPTERS.map(ch => Store.chapterStats(u.id, ch.id));
+          const totalCorrect = chStats.reduce((s, c) => s + c.correct, 0);
+          const totalQ       = chStats.reduce((s, c) => s + c.total,   0);
+          return { u, chStats, totalCorrect, totalQ };
+        }).sort((a, b) => b.totalCorrect - a.totalCorrect);
+
+        let body = '';
+        rows.forEach((row, idx) => {
+          body += `<tr>`;
+          body += `<td class="lb-rank">${idx + 1}</td>`;
+          body += `<td class="lb-name">${row.u.name}</td>`;
+          row.chStats.forEach(s => {
+            if (s.answered === 0) body += `<td class="lb-score nil">-</td>`;
+            else body += `<td class="lb-score ${s.answered===s.total?'done':''}">${s.correct}/${s.total}</td>`;
+          });
+          body += `<td class="lb-total">${row.totalCorrect}/${row.totalQ}</td></tr>`;
+        });
+
+        if (rows.length === 0) {
+          body = `<tr><td colspan="${2+CHAPTERS.length+1}" style="text-align:center;color:#999;padding:24px;">மாணவர்கள் இல்லை</td></tr>`;
+        }
+        table.innerHTML = hdr + body;
+      },
+
+      // ─── Init ────────────────────────────────────────────────
+      init() {
+        // Restore teacher session
+        if (Store.isTeacherIn()) {
+          this.currentRole = 'teacher';
+          this.renderTeacherDashboard();
+          return;
+        }
+        // Restore student session
+        const uid = Store.getCurrentId();
+        if (uid) {
+          const user = Store.getUsers().find(u => u.id === uid);
+          if (user) {
+            this.currentUser = user;
+            this.currentRole = 'student';
+            this.renderHomeScreen();
+            return;
+          }
+        }
+        this.showScreen('screen-landing');
+      }
+    };
+
+    // Boot
+    App.init();
+  </script>
+</body>
+
+</html>
