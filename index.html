@@ -285,7 +285,7 @@
       padding: 10px 18px;
       display: flex; flex-wrap: wrap;
       gap: 12px; align-items: center; justify-content: space-between;
-      position: sticky; top: 47px; z-index: 100;
+      position: sticky; top: 0; z-index: 100;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     }
     .score-item { text-align: center; }
@@ -539,6 +539,19 @@
       text-align: center; padding: 40px;
       color: var(--muted); font-size: 14px;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(253,246,236,0.92); z-index: 99999;
+      align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+    }
+    .loading-overlay.show { display: flex; }
+    .spinner {
+      width: 42px; height: 42px;
+      border: 4px solid var(--border); border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    .loading-overlay p { font-size: 14px; color: var(--primary); }
   </style>
 </head>
 
@@ -715,17 +728,46 @@
     <footer>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு · TN Textbooks 2025</footer>
   </div>
 
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>தரவு ஏற்றுகிறது...</p>
+  </div>
+
   <!-- ============================
        MODAL: ADD USER
        ============================ -->
   <div class="modal-overlay" id="addUserModal">
     <div class="modal">
       <h3>புதிய மாணவரை சேர்க்க</h3>
-      <input type="text" id="newUserName" placeholder="மாணவரின் பெயரை உள்ளிடவும்" maxlength="30"
+      <input type="text" id="newUserName" placeholder="மாணவரின் பெயரை உள்ளிடவும்" maxlength="30">
+      <input type="password" id="newUserPin" placeholder="4 இலக்க PIN அமைக்கவும்" maxlength="4"
+        inputmode="numeric" pattern="[0-9]*"
         onkeydown="if(event.key==='Enter') App.addUser()">
+      <p id="addUserErr" style="color:var(--wrong);font-size:12px;margin-bottom:10px;display:none;"></p>
       <div class="modal-btns">
         <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
         <button class="btn btn-primary" onclick="App.addUser()">சேர்</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================
+       MODAL: PIN ENTRY (student login)
+       ============================ -->
+  <div class="modal-overlay" id="pinModal">
+    <div class="modal">
+      <h3>🔒 PIN உள்ளிடவும்</h3>
+      <p id="pinModalName" style="color:var(--muted);font-size:13px;margin-bottom:14px;"></p>
+      <input type="password" id="pinInput" placeholder="4 இலக்க PIN" maxlength="4"
+        inputmode="numeric" pattern="[0-9]*"
+        onkeydown="if(event.key==='Enter') App.verifyPin()">
+      <p id="pinErr" style="color:var(--wrong);font-size:12px;margin-bottom:10px;display:none;">
+        தவறான PIN. மீண்டும் முயற்சிக்கவும்.
+      </p>
+      <div class="modal-btns">
+        <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
+        <button class="btn btn-primary" onclick="App.verifyPin()">உள்நுழை →</button>
       </div>
     </div>
   </div>
@@ -744,6 +786,8 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script>
     // ============================================================
     //  QUESTION DATA – organized by chapter then section
@@ -997,58 +1041,105 @@
     // ============================================================
     //  STORAGE HELPERS
     // ============================================================
+    // ── Firebase init ───────────────────────────────────────────
+    function withTimeout(promise, ms = 10000) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase timeout — Firestore database not created or network issue')), ms))
+      ]);
+    }
+
+    firebase.initializeApp({
+      apiKey: "AIzaSyCjDr5N8D774qqAer5l5Kie_b3-9s66BWk",
+      authDomain: "tamil-thiranari-thervu.firebaseapp.com",
+      projectId: "tamil-thiranari-thervu",
+      storageBucket: "tamil-thiranari-thervu.firebasestorage.app",
+      messagingSenderId: "840842471254",
+      appId: "1:840842471254:web:53772e08eb4914499bd8f7"
+    });
+    const db = firebase.firestore();
+
     const Store = {
-      KEY_USERS:  'ttq_users',
-      KEY_CUR:    'ttq_cur_user',
-      KEY_ANS:    'ttq_answers',
-      KEY_T_PWD:  'ttq_teacher_pwd',
-      KEY_T_IN:   'ttq_teacher_in',
-
-      getUsers()        { return JSON.parse(localStorage.getItem(this.KEY_USERS) || '[]'); },
-      saveUsers(u)      { localStorage.setItem(this.KEY_USERS, JSON.stringify(u)); },
-      getCurrentId()    { return localStorage.getItem(this.KEY_CUR); },
-      setCurrent(id)    { localStorage.setItem(this.KEY_CUR, id); },
-      clearCurrent()    { localStorage.removeItem(this.KEY_CUR); },
-      getAllAnswers()    { return JSON.parse(localStorage.getItem(this.KEY_ANS) || '{}'); },
-      saveAllAnswers(a) { localStorage.setItem(this.KEY_ANS, JSON.stringify(a)); },
-      getTeacherPwd()   { return localStorage.getItem(this.KEY_T_PWD) || '54321'; },
-      setTeacherPwd(p)  { localStorage.setItem(this.KEY_T_PWD, p); },
-      isTeacherIn()     { return localStorage.getItem(this.KEY_T_IN) === '1'; },
-      setTeacherIn(v)   { v ? localStorage.setItem(this.KEY_T_IN,'1') : localStorage.removeItem(this.KEY_T_IN); },
-
-      getUserAnswers(uid)  { return this.getAllAnswers()[uid] || {}; },
-      recordAnswer(uid, chapterId, secId, qIdx, chosen, isCorrect) {
-        const all = this.getAllAnswers();
-        if (!all[uid])                    all[uid] = {};
-        if (!all[uid][chapterId])         all[uid][chapterId] = {};
-        if (!all[uid][chapterId][secId])  all[uid][chapterId][secId] = {};
-        all[uid][chapterId][secId][qIdx] = { chosen, correct: isCorrect };
-        this.saveAllAnswers(all);
+      // ── Users ────────────────────────────────────────────────
+      async getUsers() {
+        const snap = await withTimeout(db.collection('users').orderBy('createdAt').get());
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
       },
-      clearChapter(uid, chapterId) {
-        const all = this.getAllAnswers();
-        if (all[uid]) delete all[uid][chapterId];
-        this.saveAllAnswers(all);
+      async addUser(name, pin) {
+        const ref = await withTimeout(db.collection('users').add({
+          name, pin, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }));
+        return ref.id;
       },
-      chapterStats(uid, chapterId) {
+      async deleteUser(uid) {
+        await withTimeout(Promise.all([
+          db.collection('users').doc(uid).delete(),
+          db.collection('answers').doc(uid).delete()
+        ]));
+      },
+      async verifyPin(uid, pin) {
+        const snap = await withTimeout(db.collection('users').doc(uid).get());
+        return snap.exists && snap.data().pin === pin;
+      },
+
+      // ── Answers ──────────────────────────────────────────────
+      async getUserAnswers(uid) {
+        const snap = await withTimeout(db.collection('answers').doc(uid).get());
+        return snap.exists ? snap.data() : {};
+      },
+      async recordAnswer(uid, chapterId, secId, qIdx, chosen, isCorrect) {
+        await withTimeout(db.collection('answers').doc(uid).set({
+          [chapterId]: { [secId]: { [qIdx]: { chosen, correct: isCorrect } } }
+        }, { merge: true }));
+      },
+      async clearChapter(uid, chapterId) {
+        try {
+          await withTimeout(db.collection('answers').doc(uid).update({
+            [chapterId]: firebase.firestore.FieldValue.delete()
+          }));
+        } catch(e) { /* document may not exist */ }
+      },
+      async getAllAnswers() {
+        const snap = await withTimeout(db.collection('answers').get());
+        const result = {};
+        snap.docs.forEach(d => { result[d.id] = d.data(); });
+        return result;
+      },
+
+      // ── Teacher password ─────────────────────────────────────
+      async getTeacherPwd() {
+        try {
+          const snap = await withTimeout(db.collection('config').doc('teacher').get());
+          return snap.exists ? snap.data().pwd : '54321';
+        } catch(e) { return '54321'; }
+      },
+      async setTeacherPwd(pwd) {
+        await withTimeout(db.collection('config').doc('teacher').set({ pwd }));
+      },
+
+      // ── Session (device-local) ───────────────────────────────
+      getCurrentId()  { return localStorage.getItem('ttq_cur'); },
+      setCurrent(id)  { localStorage.setItem('ttq_cur', id); },
+      clearCurrent()  { localStorage.removeItem('ttq_cur'); },
+      isTeacherIn()   { return localStorage.getItem('ttq_tin') === '1'; },
+      setTeacherIn(v) { v ? localStorage.setItem('ttq_tin','1') : localStorage.removeItem('ttq_tin'); },
+
+      // ── Stats (computed from pre-fetched ua) ─────────────────
+      chapterStats(chapterId, ua) {
         const ch = CHAPTERS.find(c => c.id === chapterId);
         if (!ch) return { answered: 0, correct: 0, total: 0 };
         let total = 0, answered = 0, correct = 0;
-        const ua = this.getUserAnswers(uid);
         ch.sections.forEach(sec => {
           total += sec.questions.length;
-          if (ua[chapterId] && ua[chapterId][sec.id]) {
-            Object.values(ua[chapterId][sec.id]).forEach(a => {
-              answered++; if (a.correct) correct++;
-            });
-          }
+          const secData = (ua[chapterId] || {})[sec.id];
+          if (secData) Object.values(secData).forEach(a => { answered++; if (a.correct) correct++; });
         });
         return { total, answered, correct };
       },
-      totalStats(uid) {
+      totalStats(ua) {
         let total = 0, answered = 0, correct = 0;
         CHAPTERS.forEach(ch => {
-          const s = this.chapterStats(uid, ch.id);
+          const s = this.chapterStats(ch.id, ua);
           total += s.total; answered += s.answered; correct += s.correct;
         });
         return { total, answered, correct };
@@ -1059,10 +1150,17 @@
     //  APP CONTROLLER
     // ============================================================
     const App = {
-      currentUser:    null,   // { id, name }
-      currentRole:    null,   // 'student' | 'teacher'
+      currentUser:    null,
+      currentRole:    null,
       currentChapter: null,
+      currentUA:      {},
+      pendingPinUid:  null,
       quizStats: { total: 0, answered: 0, correct: 0, wrong: 0 },
+
+      // ─── Loading ──────────────────────────────────────────────
+      loading(show) {
+        document.getElementById('loadingOverlay').classList.toggle('show', show);
+      },
 
       // ─── Screens ─────────────────────────────────────────────
       showScreen(id) {
@@ -1072,9 +1170,7 @@
       },
 
       // ─── Landing ─────────────────────────────────────────────
-      goStudentLogin() {
-        this.renderUserScreen();
-      },
+      goStudentLogin() { this.renderUserScreen(); },
 
       goTeacherLogin() {
         document.getElementById('teacherPwd').value = '';
@@ -1083,19 +1179,26 @@
         setTimeout(() => document.getElementById('teacherPwd').focus(), 150);
       },
 
-      verifyTeacher() {
-        const input  = document.getElementById('teacherPwd').value;
-        const errEl  = document.getElementById('teacherPwdErr');
-        if (input === Store.getTeacherPwd()) {
-          errEl.style.display = 'none';
-          document.getElementById('teacherPwd').value = '';
-          this.currentRole = 'teacher';
-          Store.setTeacherIn(true);
-          this.renderTeacherDashboard();
-        } else {
+      async verifyTeacher() {
+        const input = document.getElementById('teacherPwd').value;
+        const errEl = document.getElementById('teacherPwdErr');
+        this.loading(true);
+        try {
+          const pwd = await Store.getTeacherPwd();
+          if (input === pwd) {
+            errEl.style.display = 'none';
+            document.getElementById('teacherPwd').value = '';
+            this.currentRole = 'teacher';
+            Store.setTeacherIn(true);
+            await this.renderTeacherDashboard();
+          } else {
+            errEl.style.display = 'block';
+            document.getElementById('teacherPwd').select();
+          }
+        } catch(e) {
+          errEl.textContent = 'இணைப்பு தவறு. மீண்டும் முயற்சிக்கவும்.';
           errEl.style.display = 'block';
-          document.getElementById('teacherPwd').select();
-        }
+        } finally { this.loading(false); }
       },
 
       teacherLogout() {
@@ -1105,75 +1208,78 @@
       },
 
       // ─── Teacher Dashboard ───────────────────────────────────
-      renderTeacherDashboard() {
-        const users = Store.getUsers();
-        const list  = document.getElementById('teacherStudentList');
-        list.innerHTML = '';
+      async renderTeacherDashboard() {
+        this.loading(true);
+        try {
+          const [users, allAnswers] = await Promise.all([Store.getUsers(), Store.getAllAnswers()]);
+          const list = document.getElementById('teacherStudentList');
+          list.innerHTML = '';
 
-        if (users.length === 0) {
-          list.innerHTML = `<div class="td-no-students">
-            மாணவர்கள் இல்லை.<br>மேலே உள்ள "+ புதிய மாணவரை சேர்க்க" என்று அழுத்தவும்.
-          </div>`;
-          this.showScreen('screen-teacher-dashboard');
-          return;
-        }
-
-        users.forEach(u => {
-          const ts   = Store.totalStats(u.id);
-          const card = document.createElement('div');
-          card.className = 'td-student-card';
-
-          const chapRows = CHAPTERS.map(ch => {
-            const s = Store.chapterStats(u.id, ch.id);
-            const hasData  = s.answered > 0;
-            const scoreTxt = hasData ? `${s.correct}/${s.total}` : '—';
-            const scCls    = !hasData ? 'nil' : s.answered < s.total ? 'in-prog' : 'done';
-            const resetBtn = hasData
-              ? `<button class="td-reset-btn" onclick="App.teacherResetStudent('${u.id}','${ch.id}')">மீட்டமை</button>`
-              : `<span class="td-reset-disabled">மீட்டமை</span>`;
-            return `<div class="td-ch-row">
-              <span class="td-ch-name">${ch.icon} ${ch.title} – ${ch.subtitle}</span>
-              <span class="td-score ${scCls}">${scoreTxt}</span>
-              ${resetBtn}
+          if (users.length === 0) {
+            list.innerHTML = `<div class="td-no-students">
+              மாணவர்கள் இல்லை.<br>மேலே உள்ள "+ புதிய மாணவரை சேர்க்க" என்று அழுத்தவும்.
             </div>`;
-          }).join('');
+            this.showScreen('screen-teacher-dashboard');
+            return;
+          }
 
-          const cardId = `td-expand-${u.id}`;
-          card.innerHTML = `
-            <div class="td-student-header" style="cursor:pointer;" onclick="App.toggleStudentCard('${cardId}', this)">
-              <div style="flex:1;">
-                <div style="font-weight:700;font-size:15px;">${u.name}</div>
+          users.forEach(u => {
+            const ua  = allAnswers[u.id] || {};
+            const ts  = Store.totalStats(ua);
+            const card = document.createElement('div');
+            card.className = 'td-student-card';
+
+            const chapRows = CHAPTERS.map(ch => {
+              const s = Store.chapterStats(ch.id, ua);
+              const hasData  = s.answered > 0;
+              const scoreTxt = hasData ? `${s.correct}/${s.total}` : '—';
+              const scCls    = !hasData ? 'nil' : s.answered < s.total ? 'in-prog' : 'done';
+              const resetBtn = hasData
+                ? `<button class="td-reset-btn" onclick="App.teacherResetStudent('${u.id}','${ch.id}')">மீட்டமை</button>`
+                : `<span class="td-reset-disabled">மீட்டமை</span>`;
+              return `<div class="td-ch-row">
+                <span class="td-ch-name">${ch.icon} ${ch.title} – ${ch.subtitle}</span>
+                <span class="td-score ${scCls}">${scoreTxt}</span>
+                ${resetBtn}
+              </div>`;
+            }).join('');
+
+            const cardId = `td-expand-${u.id}`;
+            card.innerHTML = `
+              <div class="td-student-header" style="cursor:pointer;" onclick="App.toggleStudentCard('${cardId}', this)">
+                <div style="flex:1;"><div style="font-weight:700;font-size:15px;">${u.name}</div></div>
+                <span style="font-weight:700;font-size:15px;color:var(--accent);margin-right:12px;">${ts.correct}/${ts.total}</span>
+                <span class="td-expand-icon">▼</span>
+                <button class="td-delete-btn" onclick="event.stopPropagation();App.deleteStudent('${u.id}')" title="மாணவரை நீக்கு">🗑️</button>
               </div>
-              <span style="font-weight:700;font-size:15px;color:var(--accent);margin-right:12px;">${ts.correct}/${ts.total}</span>
-              <span class="td-expand-icon">▼</span>
-              <button class="td-delete-btn" onclick="event.stopPropagation();App.deleteStudent('${u.id}')" title="மாணவரை நீக்கு">🗑️</button>
-            </div>
-            <div id="${cardId}" class="td-ch-list" style="display:none;">${chapRows}</div>`;
-          list.appendChild(card);
-        });
+              <div id="${cardId}" class="td-ch-list" style="display:none;">${chapRows}</div>`;
+            list.appendChild(card);
+          });
 
-        this.showScreen('screen-teacher-dashboard');
+          this.showScreen('screen-teacher-dashboard');
+        } catch(e) {
+          alert('தரவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.');
+        } finally { this.loading(false); }
       },
 
-      teacherResetStudent(uid, chapterId) {
-        const users = Store.getUsers();
+      async teacherResetStudent(uid, chapterId) {
+        const users = await Store.getUsers();
         const user  = users.find(u => u.id === uid);
         const ch    = CHAPTERS.find(c => c.id === chapterId);
-        if (!confirm(`"${user.name}" மாணவரின் "${ch.title} – ${ch.subtitle}" தேர்வை மீட்டமைக்கணுமா?\nமாணவர் மீண்டும் தேர்வு எழுதலாம்.`)) return;
-        Store.clearChapter(uid, chapterId);
-        this.renderTeacherDashboard();
+        if (!confirm(`"${user.name}" மாணவரின் "${ch.title} – ${ch.subtitle}" தேர்வை மீட்டமைக்கணுமா?`)) return;
+        this.loading(true);
+        try { await Store.clearChapter(uid, chapterId); await this.renderTeacherDashboard(); }
+        finally { this.loading(false); }
       },
 
-      deleteStudent(uid) {
-        const users = Store.getUsers();
+      async deleteStudent(uid) {
+        const users = await Store.getUsers();
         const user  = users.find(u => u.id === uid);
         if (!user) return;
-        if (!confirm(`"${user.name}" மாணவரை நீக்கணுமா?\nமாணவரின் அனைத்து தேர்வு பதில்களும் நிரந்தரமாக நீக்கப்படும்.`)) return;
-        Store.saveUsers(users.filter(u => u.id !== uid));
-        const answers = Store.getAllAnswers();
-        delete answers[uid];
-        Store.saveAllAnswers(answers);
-        this.renderTeacherDashboard();
+        if (!confirm(`"${user.name}" மாணவரை நீக்கணுமா?\nதேர்வு பதில்கள் நிரந்தரமாக நீக்கப்படும்.`)) return;
+        this.loading(true);
+        try { await Store.deleteUser(uid); await this.renderTeacherDashboard(); }
+        finally { this.loading(false); }
       },
 
       showChangePwdModal() {
@@ -1184,55 +1290,88 @@
         setTimeout(() => document.getElementById('newPwd1').focus(), 100);
       },
 
-      saveNewPwd() {
+      async saveNewPwd() {
         const p1    = document.getElementById('newPwd1').value.trim();
         const p2    = document.getElementById('newPwd2').value.trim();
         const errEl = document.getElementById('pwdChangeErr');
         if (!p1) { errEl.textContent = 'கடவுச்சொல் உள்ளிடவும்.'; errEl.style.display='block'; return; }
         if (p1 !== p2) { errEl.textContent = 'இரண்டும் பொருந்தவில்லை.'; errEl.style.display='block'; return; }
-        Store.setTeacherPwd(p1);
-        this.closeModal();
-        alert('கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது!');
+        this.loading(true);
+        try { await Store.setTeacherPwd(p1); this.closeModal(); alert('கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது!'); }
+        catch(e) { errEl.textContent = 'சேமிக்க முடியவில்லை.'; errEl.style.display='block'; }
+        finally { this.loading(false); }
       },
 
       // ─── Student / User Screen ───────────────────────────────
-      renderUserScreen() {
-        const grid  = document.getElementById('userGrid');
-        const users = Store.getUsers();
-        grid.innerHTML = '';
-
-        users.forEach(u => {
-          const stats = Store.totalStats(u.id);
-          const div   = document.createElement('div');
-          div.className = 'user-card';
-          div.onclick   = () => this.selectUser(u.id);
-          div.innerHTML = `
-            <div class="avatar">${u.name.slice(0,2).toUpperCase()}</div>
-            <div class="name">${u.name}</div>
-            <div class="uscore">மதிப்பெண்: <span>${stats.correct}/${stats.total}</span></div>`;
-          grid.appendChild(div);
-        });
-
-        this.showScreen('screen-users');
+      async renderUserScreen() {
+        this.loading(true);
+        try {
+          const [users, allAnswers] = await Promise.all([Store.getUsers(), Store.getAllAnswers()]);
+          const grid = document.getElementById('userGrid');
+          grid.innerHTML = '';
+          users.forEach(u => {
+            const ua    = allAnswers[u.id] || {};
+            const stats = Store.totalStats(ua);
+            const div   = document.createElement('div');
+            div.className = 'user-card';
+            div.onclick   = () => this.promptPin(u.id, u.name);
+            div.innerHTML = `
+              <div class="avatar">${u.name.slice(0,2).toUpperCase()}</div>
+              <div class="name">${u.name}</div>
+              <div class="uscore">மதிப்பெண்: <span>${stats.correct}/${stats.total}</span></div>`;
+            grid.appendChild(div);
+          });
+          this.showScreen('screen-users');
+        } catch(e) {
+          alert('தரவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.');
+        } finally { this.loading(false); }
       },
 
-      selectUser(uid) {
-        const users = Store.getUsers();
-        this.currentUser = users.find(u => u.id === uid);
-        this.currentRole = 'student';
-        Store.setCurrent(uid);
-        this.renderHomeScreen();
+      promptPin(uid, name) {
+        this.pendingPinUid = uid;
+        document.getElementById('pinModalName').textContent = `வணக்கம் ${name}!`;
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinErr').style.display = 'none';
+        document.getElementById('pinModal').classList.add('show');
+        setTimeout(() => document.getElementById('pinInput').focus(), 100);
+      },
+
+      async verifyPin() {
+        const pin   = document.getElementById('pinInput').value.trim();
+        const errEl = document.getElementById('pinErr');
+        if (!pin) { document.getElementById('pinInput').focus(); return; }
+        this.loading(true);
+        try {
+          const ok = await Store.verifyPin(this.pendingPinUid, pin);
+          if (ok) {
+            this.closeModal();
+            const users = await Store.getUsers();
+            this.currentUser = users.find(u => u.id === this.pendingPinUid);
+            this.currentRole = 'student';
+            Store.setCurrent(this.pendingPinUid);
+            this.pendingPinUid = null;
+            await this.renderHomeScreen();
+          } else {
+            errEl.textContent = 'தவறான PIN. மீண்டும் முயற்சிக்கவும்.';
+            errEl.style.display = 'block';
+            document.getElementById('pinInput').select();
+          }
+        } catch(e) {
+          errEl.textContent = 'இணைப்பு தவறு. மீண்டும் முயற்சிக்கவும்.';
+          errEl.style.display = 'block';
+        } finally { this.loading(false); }
       },
 
       switchUser() {
-        this.currentUser = null;
-        this.currentRole = null;
+        this.currentUser = null; this.currentRole = null; this.currentUA = {};
         Store.clearCurrent();
         this.showScreen('screen-landing');
       },
 
       showAddUserModal() {
         document.getElementById('newUserName').value = '';
+        document.getElementById('newUserPin').value  = '';
+        document.getElementById('addUserErr').style.display = 'none';
         document.getElementById('addUserModal').classList.add('show');
         setTimeout(() => document.getElementById('newUserName').focus(), 100);
       },
@@ -1241,177 +1380,190 @@
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
       },
 
-      addUser() {
-        const name = document.getElementById('newUserName').value.trim();
+      async addUser() {
+        const name  = document.getElementById('newUserName').value.trim();
+        const pin   = document.getElementById('newUserPin').value.trim();
+        const errEl = document.getElementById('addUserErr');
+        errEl.style.display = 'none';
         if (!name) { document.getElementById('newUserName').focus(); return; }
-        const users = Store.getUsers();
-        const id    = 'u_' + Date.now();
-        users.push({ id, name });
-        Store.saveUsers(users);
-        this.closeModal();
-        if (this.currentRole === 'teacher') {
-          this.renderTeacherDashboard();
-        } else {
-          this.selectUser(id);
+        if (!/^\d{4}$/.test(pin)) {
+          errEl.textContent = '4 இலக்க எண் PIN உள்ளிடவும்.'; errEl.style.display = 'block'; return;
         }
+        this.loading(true);
+        try {
+          await Store.addUser(name, pin);
+          this.closeModal();
+          await this.renderTeacherDashboard();
+        } catch(e) {
+          errEl.textContent = 'சேர்க்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+          errEl.style.display = 'block';
+        } finally { this.loading(false); }
       },
 
       // ─── Home Screen ─────────────────────────────────────────
-      renderHomeScreen() {
-        const u = this.currentUser;
-        document.getElementById('welcomeAvatar').textContent = u.name.slice(0,2).toUpperCase();
-        document.getElementById('welcomeName').textContent   = u.name + ' – வணக்கம்!';
+      async renderHomeScreen() {
+        this.loading(true);
+        try {
+          const u  = this.currentUser;
+          const ua = await Store.getUserAnswers(u.id);
+          this.currentUA = ua;
 
-        const ts  = Store.totalStats(u.id);
-        const pct = ts.total ? Math.round((ts.correct / ts.total) * 100) : 0;
-        document.getElementById('welcomeStats').textContent =
-          `மொத்த மதிப்பெண்: ${ts.correct}/${ts.total} (${pct}%)`;
+          document.getElementById('welcomeAvatar').textContent = u.name.slice(0,2).toUpperCase();
+          document.getElementById('welcomeName').textContent   = u.name + ' – வணக்கம்!';
+          const ts  = Store.totalStats(ua);
+          const pct = ts.total ? Math.round((ts.correct / ts.total) * 100) : 0;
+          document.getElementById('welcomeStats').textContent =
+            `மொத்த மதிப்பெண்: ${ts.correct}/${ts.total} (${pct}%)`;
 
-        const grid = document.getElementById('chapterGrid');
-        grid.innerHTML = '';
-        CHAPTERS.forEach(ch => {
-          const stats  = Store.chapterStats(u.id, ch.id);
-          const pctCh  = stats.total ? Math.round((stats.answered / stats.total) * 100) : 0;
-          let statusClass, statusLabel;
-          if (stats.answered === 0)              { statusClass = 'not-started'; statusLabel = 'தொடங்கவில்லை'; }
-          else if (stats.answered < stats.total) { statusClass = 'in-progress'; statusLabel = 'தொடர்கிறது...'; }
-          else                                   { statusClass = 'completed';   statusLabel = '✓ முடிந்தது'; }
-
-          const card = document.createElement('div');
-          card.className = 'chapter-card';
-          card.onclick   = () => this.startChapter(ch.id);
-          card.innerHTML = `
-            <div class="ch-icon">${ch.icon}</div>
-            <div class="ch-num">இயல் ${ch.number}</div>
-            <div class="ch-title">${ch.title}</div>
-            <div class="ch-sub">${ch.subtitle}</div>
-            <div class="ch-prog">
-              <div class="ch-prog-bar"><div class="ch-prog-fill" style="width:${pctCh}%"></div></div>
-              <div class="ch-prog-txt">
-                <span>${stats.answered}/${stats.total} வினாக்கள்</span>
-                <span class="sc">${stats.correct} சரி</span>
-              </div>
-            </div>
-            <span class="ch-status ${statusClass}">${statusLabel}</span>`;
-          grid.appendChild(card);
-        });
-
-        this.showScreen('screen-home');
-      },
-
-      goHome() {
-        if (this.currentRole === 'teacher')       this.renderTeacherDashboard();
-        else if (this.currentRole === 'student')  this.renderHomeScreen();
-        else                                       this.showScreen('screen-landing');
-      },
-
-      // ─── Quiz Screen ─────────────────────────────────────────
-      startChapter(chapterId) {
-        this.currentChapter = CHAPTERS.find(c => c.id === chapterId);
-        document.getElementById('quizChapterTitle').textContent =
-          this.currentChapter.title + ' – ' + this.currentChapter.subtitle;
-        this.buildQuiz();
-        this.showScreen('screen-quiz');
-      },
-
-      buildQuiz() {
-        const ch    = this.currentChapter;
-        const uid   = this.currentUser.id;
-        const ua    = Store.getUserAnswers(uid);
-        const saved = ua[ch.id] || {};
-
-        this.quizStats = { total: 0, answered: 0, correct: 0, wrong: 0 };
-
-        const navEl    = document.getElementById('sectionNav');
-        const panelsEl = document.getElementById('sectionPanels');
-        navEl.innerHTML    = '';
-        panelsEl.innerHTML = '';
-        document.getElementById('finalResult').classList.remove('show');
-
-        const LABELS = ['அ)', 'ஆ)', 'இ)', 'ஈ)'];
-
-        ch.sections.forEach((sec, si) => {
-          this.quizStats.total += sec.questions.length;
-
-          const tab = document.createElement('button');
-          tab.className = 'section-tab' + (si === 0 ? ' active' : '');
-          tab.id        = `tab_${sec.id}`;
-          tab.textContent = sec.name;
-          tab.onclick   = () => this.showSection(sec.id);
-          navEl.appendChild(tab);
-
-          const panel = document.createElement('div');
-          panel.className = 'section-panel' + (si === 0 ? ' active' : '');
-          panel.id        = `panel_${sec.id}`;
-
-          const hdr = document.createElement('div');
-          hdr.className = 'section-header';
-          hdr.innerHTML = `
-            <div class="icon" style="background:${sec.bg};">${sec.icon}</div>
-            <h2>${sec.subtitle}</h2>
-            <span class="count" id="cnt_${sec.id}">0/${sec.questions.length}</span>`;
-          panel.appendChild(hdr);
-
-          const grid = document.createElement('div');
-
-          sec.questions.forEach((q, qi) => {
-            const key      = String(qi);
-            const savedAns = saved[sec.id] ? saved[sec.id][key] : null;
-
-            if (savedAns) {
-              this.quizStats.answered++;
-              if (savedAns.correct) this.quizStats.correct++;
-              else                  this.quizStats.wrong++;
-            }
+          const grid = document.getElementById('chapterGrid');
+          grid.innerHTML = '';
+          CHAPTERS.forEach(ch => {
+            const stats  = Store.chapterStats(ch.id, ua);
+            const pctCh  = stats.total ? Math.round((stats.answered / stats.total) * 100) : 0;
+            let statusClass, statusLabel;
+            if (stats.answered === 0)              { statusClass = 'not-started'; statusLabel = 'தொடங்கவில்லை'; }
+            else if (stats.answered < stats.total) { statusClass = 'in-progress'; statusLabel = 'தொடர்கிறது...'; }
+            else                                   { statusClass = 'completed';   statusLabel = '✓ முடிந்தது'; }
 
             const card = document.createElement('div');
-            card.className = 'q-card' +
-              (savedAns ? (savedAns.correct ? ' answered-correct' : ' answered-wrong') : '');
-            card.id = `card_${sec.id}_${qi}`;
-
-            const optsHTML = q.opts.map((opt, oi) => {
-              let cls = '';
-              if (savedAns) {
-                if (oi === q.ans)                            cls = ' correct';
-                else if (oi === savedAns.chosen && !savedAns.correct) cls = ' wrong';
-              }
-              return `<button class="opt-btn${cls}" id="opt_${sec.id}_${qi}_${oi}"
-                ${savedAns ? 'disabled' : ''}
-                onclick="App.answer('${ch.id}','${sec.id}',${qi},${oi},${q.ans})">
-                <span class="opt-label">${LABELS[oi]}</span><span>${opt}</span>
-              </button>`;
-            }).join('');
-
-            const resShow = savedAns ? ' show' : '';
-            const resCls  = savedAns ? (savedAns.correct ? ' correct-lbl' : ' wrong-lbl') : '';
-            const resTxt  = savedAns ? (savedAns.correct ? '✔ சரி' : '✘ தவறு') : '';
-            const expShow = savedAns ? ' show' : '';
-
+            card.className = 'chapter-card';
+            card.onclick   = () => this.startChapter(ch.id);
             card.innerHTML = `
-              <div class="q-header">
-                <div class="q-num">${qi + 1}</div>
-                <div class="q-text">${q.q}</div>
-                <span class="q-result${resShow}${resCls}" id="res_${sec.id}_${qi}">${resTxt}</span>
+              <div class="ch-icon">${ch.icon}</div>
+              <div class="ch-num">இயல் ${ch.number}</div>
+              <div class="ch-title">${ch.title}</div>
+              <div class="ch-sub">${ch.subtitle}</div>
+              <div class="ch-prog">
+                <div class="ch-prog-bar"><div class="ch-prog-fill" style="width:${pctCh}%"></div></div>
+                <div class="ch-prog-txt">
+                  <span>${stats.answered}/${stats.total} வினாக்கள்</span>
+                  <span class="sc">${stats.correct} சரி</span>
+                </div>
               </div>
-              <div class="q-options">${optsHTML}</div>
-              <div class="explanation${expShow}" id="exp_${sec.id}_${qi}">
-                <strong>✅ விளக்கம்:</strong> ${q.exp}
-              </div>`;
+              <span class="ch-status ${statusClass}">${statusLabel}</span>`;
             grid.appendChild(card);
           });
 
-          panel.appendChild(grid);
-          panelsEl.appendChild(panel);
-        });
+          this.showScreen('screen-home');
+        } catch(e) {
+          alert('தரவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.');
+        } finally { this.loading(false); }
+      },
 
-        ch.sections.forEach(sec => {
-          const cnt = Object.keys(saved[sec.id] || {}).length;
-          const el  = document.getElementById(`cnt_${sec.id}`);
-          if (el) el.textContent = `${cnt}/${sec.questions.length}`;
-        });
+      goHome() {
+        if (this.currentRole === 'teacher')      this.renderTeacherDashboard();
+        else if (this.currentRole === 'student') this.renderHomeScreen();
+        else                                      this.showScreen('screen-landing');
+      },
 
-        this.updateScoreboard();
-        this.checkCompletion();
+      // ─── Quiz Screen ─────────────────────────────────────────
+      async startChapter(chapterId) {
+        this.currentChapter = CHAPTERS.find(c => c.id === chapterId);
+        document.getElementById('quizChapterTitle').textContent =
+          this.currentChapter.title + ' – ' + this.currentChapter.subtitle;
+        await this.buildQuiz();
+        this.showScreen('screen-quiz');
+      },
+
+      async buildQuiz() {
+        this.loading(true);
+        try {
+          const ch    = this.currentChapter;
+          const uid   = this.currentUser.id;
+          const ua    = await Store.getUserAnswers(uid);
+          this.currentUA = ua;
+          const saved = ua[ch.id] || {};
+
+          this.quizStats = { total: 0, answered: 0, correct: 0, wrong: 0 };
+          const navEl    = document.getElementById('sectionNav');
+          const panelsEl = document.getElementById('sectionPanels');
+          navEl.innerHTML = ''; panelsEl.innerHTML = '';
+          document.getElementById('finalResult').classList.remove('show');
+
+          const LABELS = ['அ)', 'ஆ)', 'இ)', 'ஈ)'];
+
+          ch.sections.forEach((sec, si) => {
+            this.quizStats.total += sec.questions.length;
+
+            const tab = document.createElement('button');
+            tab.className = 'section-tab' + (si === 0 ? ' active' : '');
+            tab.id = `tab_${sec.id}`; tab.textContent = sec.name;
+            tab.onclick = () => this.showSection(sec.id);
+            navEl.appendChild(tab);
+
+            const panel = document.createElement('div');
+            panel.className = 'section-panel' + (si === 0 ? ' active' : '');
+            panel.id = `panel_${sec.id}`;
+
+            const hdr = document.createElement('div');
+            hdr.className = 'section-header';
+            hdr.innerHTML = `
+              <div class="icon" style="background:${sec.bg};">${sec.icon}</div>
+              <h2>${sec.subtitle}</h2>
+              <span class="count" id="cnt_${sec.id}">0/${sec.questions.length}</span>`;
+            panel.appendChild(hdr);
+
+            const grid = document.createElement('div');
+
+            sec.questions.forEach((q, qi) => {
+              const key      = String(qi);
+              const savedAns = saved[sec.id] ? saved[sec.id][key] : null;
+
+              if (savedAns) {
+                this.quizStats.answered++;
+                if (savedAns.correct) this.quizStats.correct++;
+                else                  this.quizStats.wrong++;
+              }
+
+              const card = document.createElement('div');
+              card.className = 'q-card' +
+                (savedAns ? (savedAns.correct ? ' answered-correct' : ' answered-wrong') : '');
+              card.id = `card_${sec.id}_${qi}`;
+
+              const optsHTML = q.opts.map((opt, oi) => {
+                let cls = '';
+                if (savedAns) {
+                  if (oi === q.ans)                                   cls = ' correct';
+                  else if (oi === savedAns.chosen && !savedAns.correct) cls = ' wrong';
+                }
+                return `<button class="opt-btn${cls}" id="opt_${sec.id}_${qi}_${oi}"
+                  ${savedAns ? 'disabled' : ''}
+                  onclick="App.answer('${ch.id}','${sec.id}',${qi},${oi},${q.ans})">
+                  <span class="opt-label">${LABELS[oi]}</span><span>${opt}</span>
+                </button>`;
+              }).join('');
+
+              const resShow = savedAns ? ' show' : '';
+              const resCls  = savedAns ? (savedAns.correct ? ' correct-lbl' : ' wrong-lbl') : '';
+              const resTxt  = savedAns ? (savedAns.correct ? '✔ சரி' : '✘ தவறு') : '';
+              const expShow = savedAns ? ' show' : '';
+
+              card.innerHTML = `
+                <div class="q-header">
+                  <div class="q-num">${qi + 1}</div>
+                  <div class="q-text">${q.q}</div>
+                  <span class="q-result${resShow}${resCls}" id="res_${sec.id}_${qi}">${resTxt}</span>
+                </div>
+                <div class="q-options">${optsHTML}</div>
+                <div class="explanation${expShow}" id="exp_${sec.id}_${qi}">
+                  <strong>✅ விளக்கம்:</strong> ${q.exp}
+                </div>`;
+              grid.appendChild(card);
+            });
+
+            panel.appendChild(grid);
+            panelsEl.appendChild(panel);
+          });
+
+          ch.sections.forEach(sec => {
+            const cnt = Object.keys(saved[sec.id] || {}).length;
+            const el  = document.getElementById(`cnt_${sec.id}`);
+            if (el) el.textContent = `${cnt}/${sec.questions.length}`;
+          });
+
+          this.updateScoreboard();
+          this.checkCompletion();
+        } finally { this.loading(false); }
       },
 
       showSection(secId) {
@@ -1425,10 +1577,9 @@
       answer(chapterId, secId, qi, chosen, correctAns) {
         const ch        = this.currentChapter;
         const sec       = ch.sections.find(s => s.id === secId);
-        const q         = sec.questions[qi];
         const isCorrect = chosen === correctAns;
 
-        q.opts.forEach((_, oi) => {
+        sec.questions[qi].opts.forEach((_, oi) => {
           const btn = document.getElementById(`opt_${secId}_${qi}_${oi}`);
           btn.disabled = true;
           if (oi === correctAns)                btn.classList.add('correct');
@@ -1449,13 +1600,18 @@
           ).play();
         } catch(e) {}
 
-        Store.recordAnswer(this.currentUser.id, chapterId, secId, String(qi), chosen, isCorrect);
+        // Update local cache and save to Firebase (non-blocking)
+        if (!this.currentUA[chapterId])        this.currentUA[chapterId] = {};
+        if (!this.currentUA[chapterId][secId]) this.currentUA[chapterId][secId] = {};
+        this.currentUA[chapterId][secId][String(qi)] = { chosen, correct: isCorrect };
+        Store.recordAnswer(this.currentUser.id, chapterId, secId, String(qi), chosen, isCorrect)
+          .catch(e => console.warn('Save failed:', e));
 
         this.quizStats.answered++;
         if (isCorrect) this.quizStats.correct++;
         else           this.quizStats.wrong++;
 
-        const cnt = Object.keys((Store.getUserAnswers(this.currentUser.id)[chapterId]||{})[secId]||{}).length;
+        const cnt = Object.keys(this.currentUA[chapterId][secId]).length;
         document.getElementById(`cnt_${secId}`).textContent = `${cnt}/${sec.questions.length}`;
 
         this.updateScoreboard();
@@ -1475,52 +1631,55 @@
       checkCompletion() {
         const { total, answered, correct } = this.quizStats;
         if (answered < total) return;
-        const fr  = document.getElementById('finalResult');
+        const fr = document.getElementById('finalResult');
         fr.classList.add('show');
         document.getElementById('finalScore').textContent = `${correct}/${total}`;
         const pct = Math.round((correct / total) * 100);
-        let msg = pct >= 90 ? '🏆 சிறப்பான செயல்திறன்!'
-                : pct >= 70 ? '👍 நல்ல முயற்சி!'
-                : pct >= 50 ? '📖 இன்னும் கொஞ்சம் படிக்கவும்!'
-                :             '📚 மேலும் கடினமாக படிக்க வேண்டும்';
-        document.getElementById('finalMsg').textContent = msg;
+        document.getElementById('finalMsg').textContent =
+          pct >= 90 ? '🏆 சிறப்பான செயல்திறன்!'
+        : pct >= 70 ? '👍 நல்ல முயற்சி!'
+        : pct >= 50 ? '📖 இன்னும் கொஞ்சம் படிக்கவும்!'
+        :             '📚 மேலும் கடினமாக படிக்க வேண்டும்';
         fr.scrollIntoView({ behavior: 'smooth' });
       },
 
       // ─── Student card expand/collapse ────────────────────────
       toggleStudentCard(cardId, header) {
-        const panel = document.getElementById(cardId);
-        const icon  = header.querySelector('.td-expand-icon');
+        const panel  = document.getElementById(cardId);
+        const icon   = header.querySelector('.td-expand-icon');
         const isOpen = panel.style.display !== 'none';
         panel.style.display = isOpen ? 'none' : 'block';
-        icon.textContent = isOpen ? '▼' : '▲';
+        icon.textContent    = isOpen ? '▼' : '▲';
       },
 
       // ─── Init ────────────────────────────────────────────────
-      init() {
-        // Restore teacher session
+      async init() {
         if (Store.isTeacherIn()) {
           this.currentRole = 'teacher';
-          this.renderTeacherDashboard();
+          await this.renderTeacherDashboard();
           return;
         }
-        // Restore student session
         const uid = Store.getCurrentId();
         if (uid) {
-          const user = Store.getUsers().find(u => u.id === uid);
-          if (user) {
-            this.currentUser = user;
-            this.currentRole = 'student';
-            this.renderHomeScreen();
-            return;
-          }
+          this.loading(true);
+          try {
+            const users = await Store.getUsers();
+            const user  = users.find(u => u.id === uid);
+            if (user) {
+              this.currentUser = user;
+              this.currentRole = 'student';
+              await this.renderHomeScreen();
+              return;
+            }
+          } catch(e) { /* fall through */ }
+          finally { this.loading(false); }
         }
         this.showScreen('screen-landing');
       }
     };
 
     // Boot
-    App.init();
+    App.init().catch(e => console.error('Init failed:', e));
   </script>
 </body>
 
