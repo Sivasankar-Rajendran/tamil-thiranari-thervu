@@ -600,7 +600,8 @@
         <p style="text-align:center;color:var(--muted);margin-bottom:18px;font-size:14px;">உங்கள் PIN மற்றும் பிறந்த தேதி உள்ளிடவும்</p>
         <input type="password" id="studentPin" placeholder="4 இலக்க PIN" maxlength="4" inputmode="numeric"
           onkeydown="if(event.key==='Enter') document.getElementById('studentDob').focus()">
-        <input type="text" id="studentDob" placeholder="பிறந்த தேதி (DDMMYYYY)" maxlength="8" inputmode="numeric"
+        <input type="text" id="studentDob" placeholder="பிறந்த தேதி (DD/MM/YYYY)" maxlength="10" inputmode="numeric"
+          oninput="formatDobInput(this)"
           onkeydown="if(event.key==='Enter') App.verifyStudentLogin()">
         <p id="studentLoginErr" style="color:var(--wrong);font-size:12px;margin-bottom:12px;display:none;">
           தவறான PIN அல்லது பிறந்த தேதி. மீண்டும் முயற்சிக்கவும்.
@@ -756,8 +757,9 @@
       <input type="text" id="newUserName" placeholder="மாணவரின் பெயரை உள்ளிடவும்" maxlength="30">
       <input type="password" id="newUserPin" placeholder="4 இலக்க PIN" maxlength="4"
         inputmode="numeric" pattern="[0-9]*">
-      <input type="text" id="newUserDob" placeholder="பிறந்த தேதி (DDMMYYYY)" maxlength="8"
-        inputmode="numeric" onkeydown="if(event.key==='Enter') App.addUser()">
+      <input type="text" id="newUserDob" placeholder="பிறந்த தேதி (DD/MM/YYYY)" maxlength="10"
+        inputmode="numeric" oninput="formatDobInput(this)"
+        onkeydown="if(event.key==='Enter') App.addUser()">
       <p id="addUserErr" style="color:var(--wrong);font-size:12px;margin-bottom:10px;display:none;"></p>
       <div class="modal-btns">
         <button class="btn btn-secondary" onclick="App.closeModal()">ரத்து</button>
@@ -1037,6 +1039,29 @@
     //  STORAGE HELPERS
     // ============================================================
     // ── Firebase init ───────────────────────────────────────────
+    function formatDobInput(el) {
+      const pos = el.selectionStart;
+      const prev = el.value;
+      let digits = prev.replace(/\D/g, '').slice(0, 8);
+      let fmt = digits;
+      if (digits.length > 4) fmt = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
+      else if (digits.length > 2) fmt = digits.slice(0,2) + '/' + digits.slice(2);
+      el.value = fmt;
+      // keep cursor from jumping to end on mid-edit
+      const added = fmt.length - prev.length;
+      el.setSelectionRange(pos + added, pos + added);
+    }
+
+    function isValidDob(digits) {
+      if (!/^\d{8}$/.test(digits)) return false;
+      const dd = parseInt(digits.slice(0,2), 10);
+      const mm = parseInt(digits.slice(2,4), 10);
+      const yyyy = parseInt(digits.slice(4), 10);
+      if (dd < 1 || mm < 1 || mm > 12 || yyyy < 1990 || yyyy > 2020) return false;
+      const d = new Date(yyyy, mm - 1, dd);
+      return d.getFullYear() === yyyy && d.getMonth() === mm - 1 && d.getDate() === dd;
+    }
+
     function withTimeout(promise, ms = 10000) {
       return Promise.race([
         promise,
@@ -1319,10 +1344,10 @@
 
       async verifyStudentLogin() {
         const pin   = document.getElementById('studentPin').value.trim();
-        const dob   = document.getElementById('studentDob').value.trim();
+        const dob   = document.getElementById('studentDob').value.replace(/\D/g, '');
         const errEl = document.getElementById('studentLoginErr');
         errEl.style.display = 'none';
-        if (!pin || !dob) {
+        if (!pin || dob.length !== 8) {
           errEl.style.display = 'block'; return;
         }
         this.loading(true);
@@ -1365,15 +1390,15 @@
       async addUser() {
         const name  = document.getElementById('newUserName').value.trim();
         const pin   = document.getElementById('newUserPin').value.trim();
-        const dob   = document.getElementById('newUserDob').value.trim();
+        const dob   = document.getElementById('newUserDob').value.replace(/\D/g, '');
         const errEl = document.getElementById('addUserErr');
         errEl.style.display = 'none';
         if (!name) { document.getElementById('newUserName').focus(); return; }
         if (!/^\d{4}$/.test(pin)) {
           errEl.textContent = '4 இலக்க எண் PIN உள்ளிடவும்.'; errEl.style.display = 'block'; return;
         }
-        if (!/^\d{8}$/.test(dob)) {
-          errEl.textContent = 'பிறந்த தேதி DDMMYYYY வடிவத்தில் உள்ளிடவும்.'; errEl.style.display = 'block'; return;
+        if (!isValidDob(dob)) {
+          errEl.textContent = 'சரியான பிறந்த தேதி உள்ளிடவும். (DD/MM/YYYY)'; errEl.style.display = 'block'; return;
         }
         this.loading(true);
         try {
