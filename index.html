@@ -5,6 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>10ஆம் வகுப்பு தமிழ் திறன் தேர்வு</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8b1a1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="தமிழ் தேர்வு">
+  <link rel="apple-touch-icon" href="icon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700;900&family=Noto+Serif+Tamil:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -92,6 +99,19 @@
     }
     .hero-btn:hover { background: rgba(255, 255, 255, 0.28); }
     .hero-sm { padding: 22px 24px 18px; }
+
+    @media(max-width: 480px) {
+      .hero-sm {
+        display: flex; flex-direction: column; align-items: stretch;
+      }
+      .hero-nav {
+        position: static; transform: none;
+        width: 100%; justify-content: flex-end;
+        margin-top: 10px; order: 10;
+        gap: 6px;
+      }
+      .hero-btn { font-size: 12px; padding: 5px 10px; }
+    }
 
     /* CONTAINER */
     .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
@@ -1702,6 +1722,12 @@
 
     // Boot
     App.init().catch(e => console.error('Init failed:', e));
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 

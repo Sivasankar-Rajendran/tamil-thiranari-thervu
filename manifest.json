@@ -1,0 +1,19 @@
+{
+  "name": "10ஆம் வகுப்பு தமிழ் திறன் தேர்வு",
+  "short_name": "தமிழ் தேர்வு",
+  "description": "10ஆம் வகுப்பு தமிழ் MCQ திறன் தேர்வு மையம்",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fdf6ec",
+  "theme_color": "#8b1a1a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
