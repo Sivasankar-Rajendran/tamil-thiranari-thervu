@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Icons</title></head>
+<body>
+<canvas id="c" style="display:none"></canvas>
+<p id="msg" style="font-family:sans-serif;padding:20px;">Generating icons...</p>
+<script>
+function drawIcon(size) {
+  const canvas = document.getElementById('c');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // Rounded-rect background
+  const r = size * 0.17;
+  ctx.beginPath();
+  ctx.moveTo(r, 0); ctx.lineTo(size - r, 0);
+  ctx.arcTo(size, 0, size, r, r); ctx.lineTo(size, size - r);
+  ctx.arcTo(size, size, size - r, size, r); ctx.lineTo(r, size);
+  ctx.arcTo(0, size, 0, size - r, r); ctx.lineTo(0, r);
+  ctx.arcTo(0, 0, r, 0, r);
+  ctx.closePath();
+  ctx.fillStyle = '#8b1a1a';
+  ctx.fill();
+
+  // Decorative glow circle
+  const grad = ctx.createRadialGradient(size*0.78, size*0.22, 0, size*0.78, size*0.22, size*0.35);
+  grad.addColorStop(0, 'rgba(212,130,10,0.30)');
+  grad.addColorStop(1, 'rgba(212,130,10,0)');
+  ctx.beginPath();
+  ctx.arc(size*0.78, size*0.22, size*0.35, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Tamil letter த
+  ctx.fillStyle = 'white';
+  ctx.font = `bold ${Math.round(size * 0.58)}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('த', size / 2, size * 0.70);
+
+  return canvas.toDataURL('image/png');
+}
+
+function download(dataUrl, filename) {
+  const a = document.createElement('a');
+  a.href = dataUrl; a.download = filename; a.click();
+}
+
+window.onload = () => {
+  download(drawIcon(192), 'icon-192.png');
+  setTimeout(() => {
+    download(drawIcon(512), 'icon-512.png');
+    document.getElementById('msg').innerHTML =
+      '<b>✅ Done!</b> Two files downloaded: <code>icon-192.png</code> and <code>icon-512.png</code>.<br><br>' +
+      'Move both files into the project folder alongside <code>index.html</code>, then close this page.';
+  }, 600);
+};
+</script>
+</body>
+</html>
